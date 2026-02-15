@@ -2,6 +2,8 @@
 
 Rash 프로젝트는 디렉토리 기반으로 저장된다. 각 파일은 JSON 형식이며, git으로 추적하기에 최적화되어 있다.
 
+> 문서 상태: **Current (MVP 기준 규칙)** + **Target (최종 비전 확장)** 를 함께 다룬다.
+
 ## 프로젝트 디렉토리 구조
 
 ```
@@ -10,9 +12,9 @@ my-server/
 ├── routes/
 │   ├── api/
 │   │   └── v1/
-│   │       ├── users.route.json          # GET/POST /api/v1/users
+│   │       ├── users.route.json          # GET/POST /v1/users (basePath와 결합)
 │   │       ├── users/
-│   │       │   └── [id].route.json       # GET/PUT/DELETE /api/v1/users/:id
+│   │       │   └── [id].route.json       # GET/PUT/DELETE /v1/users/:id (basePath와 결합)
 │   │       ├── posts.route.json
 │   │       └── auth/
 │   │           ├── login.route.json
@@ -108,6 +110,20 @@ my-server/
 | Python | `fastapi`, `django`, `flask` |
 | Go | `gin`, `echo`, `fiber` |
 
+### `server.basePath` + Route `path` 해석 규칙
+
+경로 중복(`/api/api/...`)을 방지하기 위해 다음 단일 규칙을 사용한다.
+
+- `route.path`는 **basePath를 제외한 상대 경로**를 기본값으로 사용한다.
+- 최종 URL은 `finalPath = normalize(server.basePath + route.path)` 로 계산한다.
+- `server.basePath`가 비어 있거나 `/`이면 `route.path`를 그대로 사용한다.
+- 경로는 항상 `/`로 시작해야 하며, 저장 시 중복 슬래시는 정규화한다.
+
+예시:
+- `basePath=/api`, `route.path=/v1/users` → `/api/v1/users`
+- `basePath=/api`, `route.path=/v1/users/:id` → `/api/v1/users/:id`
+- `basePath=/`, `route.path=/health` → `/health`
+
 ## Route 파일 (*.route.json)
 
 라우트 파일은 하나의 URL 경로에 대한 HTTP 메서드별 핸들러를 정의한다.
@@ -115,7 +131,7 @@ my-server/
 ```json
 {
   "$schema": "https://rash.dev/schemas/route.json",
-  "path": "/api/v1/users",
+  "path": "/v1/users",
   "description": "사용자 관리 API",
 
   "methods": {
@@ -182,12 +198,12 @@ my-server/
 
 파일명에 `[param]` 표기법을 사용한다.
 
-- `users/[id].route.json` → `/api/v1/users/:id`
+- `users/[id].route.json` → `/v1/users/:id` (basePath와 결합 시 `/api/v1/users/:id`)
 - `posts/[postId]/comments/[commentId].route.json` → `/posts/:postId/comments/:commentId`
 
 ```json
 {
-  "path": "/api/v1/users/:id",
+  "path": "/v1/users/:id",
   "params": {
     "id": {
       "type": "string",
