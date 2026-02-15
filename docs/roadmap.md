@@ -20,6 +20,28 @@ Phase 6 ─── 테스트 + 디버깅
 Phase 7 ─── 마켓플레이스 + 생태계
 ```
 
+## Phase 0: 구현 선행 기능 (권장)
+
+핵심 구현을 시작하기 전에, 실패 비용을 줄이기 위한 선행 작업이다.
+
+### 작업 순서
+
+| # | 선행 기능 | 목적 | 연관 문서 |
+|---|-----------|------|-----------|
+| 0.1 | Spec 버전/마이그레이션 시스템 | 버전 변화 시 자동 업그레이드/롤백 기준 확보 | `architecture/spec-format.md` |
+| 0.2 | Resolver 결정 규칙 고정 | `{ "ref": "..." }` 해석의 결정론 보장 | `architecture/spec-format.md` |
+| 0.3 | JSON Schema + 에러 포맷 표준화 | GUI/CLI가 동일한 검증 오류를 해석하도록 통일 | `architecture/spec-format.md` |
+| 0.4 | Incremental 의존성 그래프 | 변경 영향 범위를 정확히 계산 | `architecture/codegen.md` |
+| 0.5 | HMU Atomic 적용/롤백 | 부분 적용으로 인한 런타임 불일치 방지 | `architecture/runtime.md` |
+| 0.6 | 실행 프리플라이트 체크 | 런타임/포트/env 문제를 Run 전에 차단 | `architecture/runtime.md` |
+| 0.7 | Golden E2E 샘플 프로젝트 | 회귀 기준(스펙→코드→실행→HMU) 확보 | `architecture/runtime.md`, `architecture/tauri-app.md` |
+| 0.8 | 이벤트 Payload 표준 스키마 | Rust↔JS 이벤트 계약 안정화 | `architecture/tauri-app.md` |
+
+### 완료 기준
+- 0.1~0.8이 순서대로 구현되어, 각 단계 산출물이 다음 단계의 입력으로 재사용된다.
+- MVP 구현(Phase 1~4) 착수 전에 최소 0.1~0.6이 완료된다.
+- CI에서 Golden E2E 샘플 1개를 기준으로 기본 회귀가 통과한다.
+
 ## Phase 1: 기반 구축
 
 **목표**: Rash 스펙 포맷을 확정하고, 핵심 데이터 구조를 구현한다.
