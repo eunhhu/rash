@@ -69,7 +69,9 @@ mod tests {
                     code: "E_RUNTIME_NOT_FOUND".into(),
                     status: CheckStatus::Fail,
                     message: "bun not found in PATH".into(),
-                    suggestion: Some("Install bun: curl -fsSL https://bun.sh/install | bash".into()),
+                    suggestion: Some(
+                        "Install bun: curl -fsSL https://bun.sh/install | bash".into(),
+                    ),
                 },
                 PreflightCheck {
                     code: "E_PORT_IN_USE".into(),
@@ -84,7 +86,10 @@ mod tests {
 
         assert_eq!(json["ok"], false);
         assert_eq!(json["checks"][0]["status"], "fail");
-        assert_eq!(json["checks"][0]["suggestion"], "Install bun: curl -fsSL https://bun.sh/install | bash");
+        assert_eq!(
+            json["checks"][0]["suggestion"],
+            "Install bun: curl -fsSL https://bun.sh/install | bash"
+        );
         assert_eq!(json["checks"][1]["status"], "warn");
     }
 

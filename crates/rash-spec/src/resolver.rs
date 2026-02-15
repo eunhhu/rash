@@ -1,7 +1,5 @@
 use crate::index::{SpecIndex, SymbolEntry, SymbolKind};
-use crate::types::error::{
-    ErrorEntry, E_REF_AMBIGUOUS, E_REF_NOT_FOUND, E_REF_TYPE_MISMATCH,
-};
+use crate::types::error::{ErrorEntry, E_REF_AMBIGUOUS, E_REF_NOT_FOUND, E_REF_TYPE_MISMATCH};
 
 /// Context in which a reference appears, used to determine expected symbol kind
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -154,9 +152,7 @@ impl<'a> Resolver<'a> {
                     file,
                     path,
                 )
-                .with_suggestion(
-                    "Use a more specific reference or rename conflicting definitions",
-                ))
+                .with_suggestion("Use a more specific reference or rename conflicting definitions"))
             }
             ResolveResult::External { .. } => {
                 // External references are not resolved locally — this is not an error
@@ -164,7 +160,10 @@ impl<'a> Resolver<'a> {
                 // For now, treat as "not an error but not resolved"
                 Err(ErrorEntry::error(
                     E_REF_NOT_FOUND,
-                    format!("External reference '{}' cannot be resolved locally", ref_str),
+                    format!(
+                        "External reference '{}' cannot be resolved locally",
+                        ref_str
+                    ),
                     file,
                     path,
                 )

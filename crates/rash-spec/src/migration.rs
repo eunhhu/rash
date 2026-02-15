@@ -186,10 +186,7 @@ impl MigrationStep for V0_9ToV1_0 {
             })?;
 
         // Verify current version
-        let current = obj
-            .get("version")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let current = obj.get("version").and_then(|v| v.as_str()).unwrap_or("");
         if current != "0.9.0" {
             return Err(MigrationError::VersionMismatch {
                 expected: self.source_version(),
@@ -207,14 +204,9 @@ impl MigrationStep for V0_9ToV1_0 {
         obj.insert("version".to_string(), serde_json::json!("1.0.0"));
 
         // Ensure meta object exists and add lastMigratedFrom
-        let meta = obj
-            .entry("meta")
-            .or_insert_with(|| serde_json::json!({}));
+        let meta = obj.entry("meta").or_insert_with(|| serde_json::json!({}));
         if let Some(meta_obj) = meta.as_object_mut() {
-            meta_obj.insert(
-                "lastMigratedFrom".to_string(),
-                serde_json::json!("0.9.0"),
-            );
+            meta_obj.insert("lastMigratedFrom".to_string(), serde_json::json!("0.9.0"));
         }
 
         Ok(())
@@ -289,10 +281,9 @@ mod tests {
         assert_eq!(backups.len(), 1);
 
         let backup_dir = backups[0].as_ref().unwrap().path();
-        let backup_config: serde_json::Value = serde_json::from_str(
-            &fs::read_to_string(backup_dir.join("rash.config.json")).unwrap(),
-        )
-        .unwrap();
+        let backup_config: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(backup_dir.join("rash.config.json")).unwrap())
+                .unwrap();
         assert_eq!(backup_config["version"], "0.8.0");
 
         // Original file should be unchanged (migration failed before writing)

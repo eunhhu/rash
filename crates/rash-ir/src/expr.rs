@@ -23,10 +23,7 @@ pub enum ExprIR {
     },
 
     /// Unary operation: `op operand`
-    Unary {
-        op: String,
-        operand: Box<ExprIR>,
-    },
+    Unary { op: String, operand: Box<ExprIR> },
 
     /// Function call: `callee(args...)`
     Call {
@@ -47,9 +44,7 @@ pub enum ExprIR {
     },
 
     /// Object literal: `{ key: value, ... }`
-    Object {
-        properties: Vec<(String, ExprIR)>,
-    },
+    Object { properties: Vec<(String, ExprIR)> },
 
     /// Array literal: `[elem, ...]`
     Array { elements: Vec<ExprIR> },
@@ -83,10 +78,7 @@ pub enum ExprIR {
     CtxGet { path: String },
 
     /// Schema validation
-    Validate {
-        schema: String,
-        data: Box<ExprIR>,
-    },
+    Validate { schema: String, data: Box<ExprIR> },
 
     /// Password hashing
     HashPassword {
@@ -241,15 +233,25 @@ pub enum TypeIR {
     Void,
     Any,
     /// Array of inner type
-    Array { inner: Box<TypeIR> },
+    Array {
+        inner: Box<TypeIR>,
+    },
     /// Optional (nullable) inner type
-    Optional { inner: Box<TypeIR> },
+    Optional {
+        inner: Box<TypeIR>,
+    },
     /// Named type reference (e.g., schema name, model name)
-    Ref { name: String },
+    Ref {
+        name: String,
+    },
     /// Object type with named fields
-    Object { fields: Vec<(String, TypeIR)> },
+    Object {
+        fields: Vec<(String, TypeIR)>,
+    },
     /// Union of multiple types
-    Union { variants: Vec<TypeIR> },
+    Union {
+        variants: Vec<TypeIR>,
+    },
 }
 
 // Convenience constructors for TypeIR
@@ -453,7 +455,10 @@ mod tests {
     fn test_object_expr() {
         let expr = ExprIR::Object {
             properties: vec![
-                ("key".to_string(), ExprIR::literal(serde_json::json!("value"))),
+                (
+                    "key".to_string(),
+                    ExprIR::literal(serde_json::json!("value")),
+                ),
                 ("count".to_string(), ExprIR::literal(serde_json::json!(42))),
             ],
         };

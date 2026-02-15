@@ -28,13 +28,9 @@ pub fn check(project: &LoadedProject, _index: &SpecIndex, report: &mut Validatio
     for node in graph.keys() {
         if !visited.contains(node) {
             let mut path = Vec::new();
-            if let Some(cycle) = dfs_find_cycle(
-                node,
-                &graph,
-                &mut visited,
-                &mut in_stack,
-                &mut path,
-            ) {
+            if let Some(cycle) =
+                dfs_find_cycle(node, &graph, &mut visited, &mut in_stack, &mut path)
+            {
                 let cycle_str = cycle.join(" -> ");
                 // Find the file for the first node in the cycle
                 let file = graph
@@ -74,9 +70,7 @@ fn dfs_find_cycle(
     if let Some(edges) = graph.get(node) {
         for (target, _) in edges {
             if !visited.contains(target) {
-                if let Some(cycle) =
-                    dfs_find_cycle(target, graph, visited, in_stack, path)
-                {
+                if let Some(cycle) = dfs_find_cycle(target, graph, visited, in_stack, path) {
                     return Some(cycle);
                 }
             } else if in_stack.contains(target) {

@@ -88,10 +88,7 @@ fn cmd_init(
         .unwrap_or_else(|| PathBuf::from(name));
 
     if project_dir.exists() {
-        anyhow::bail!(
-            "Directory '{}' already exists",
-            project_dir.display()
-        );
+        anyhow::bail!("Directory '{}' already exists", project_dir.display());
     }
 
     std::fs::create_dir_all(&project_dir)
@@ -201,7 +198,9 @@ fn cmd_validate(path: &Path) -> Result<bool> {
     println!(
         "{} {}",
         "Validating".bold(),
-        path.canonicalize().unwrap_or_else(|_| path.to_path_buf()).display()
+        path.canonicalize()
+            .unwrap_or_else(|_| path.to_path_buf())
+            .display()
     );
 
     let (project, load_report) = rash_spec::loader::load_project(path)
@@ -348,7 +347,11 @@ fn cmd_check(path: &Path) -> Result<bool> {
         .count();
 
     if error_count > 0 {
-        println!("{} {} validation error(s) found", "✗".red().bold(), error_count);
+        println!(
+            "{} {} validation error(s) found",
+            "✗".red().bold(),
+            error_count
+        );
         Ok(false)
     } else {
         println!("{} No validation errors", "✓".green().bold());

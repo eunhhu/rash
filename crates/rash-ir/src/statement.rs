@@ -15,10 +15,7 @@ pub enum StatementIR {
     },
 
     /// Assignment: `target = value`
-    Assign {
-        target: ExprIR,
-        value: ExprIR,
-    },
+    Assign { target: ExprIR, value: ExprIR },
 
     /// Return statement: `return value`
     Return {
@@ -48,10 +45,7 @@ pub enum StatementIR {
     },
 
     /// Pattern matching
-    Match {
-        expr: ExprIR,
-        arms: Vec<MatchArmIR>,
-    },
+    Match { expr: ExprIR, arms: Vec<MatchArmIR> },
 
     /// Try/catch/finally
     TryCatch {
@@ -64,14 +58,10 @@ pub enum StatementIR {
     },
 
     /// Throw expression as statement
-    Throw {
-        value: ExprIR,
-    },
+    Throw { value: ExprIR },
 
     /// Expression used as statement
-    Expression {
-        expr: ExprIR,
-    },
+    Expression { expr: ExprIR },
 }
 
 /// A single arm of a match expression.
@@ -233,9 +223,7 @@ mod tests {
         let json = serde_json::to_value(&stmt).unwrap();
         let deserialized: StatementIR = serde_json::from_value(json).unwrap();
         match deserialized {
-            StatementIR::For {
-                binding, body, ..
-            } => {
+            StatementIR::For { binding, body, .. } => {
                 assert_eq!(binding, "item");
                 assert_eq!(body.len(), 1);
             }

@@ -58,11 +58,16 @@ pub fn check(project: &LoadedProject, report: &mut ValidationReport) {
                 report.push(
                     ErrorEntry::error(
                         E_MISSING_FIELD,
-                        format!("Handler reference is required for {} {}", method_str, route.path),
+                        format!(
+                            "Handler reference is required for {} {}",
+                            method_str, route.path
+                        ),
                         file,
                         &format!("$.methods.{}.handler.ref", method_str),
                     )
-                    .with_suggestion("Add a handler reference (e.g., { \"ref\": \"users.getUser\" })"),
+                    .with_suggestion(
+                        "Add a handler reference (e.g., { \"ref\": \"users.getUser\" })",
+                    ),
                 );
             }
         }
@@ -119,13 +124,8 @@ pub fn check(project: &LoadedProject, report: &mut ValidationReport) {
     for (file, handler) in &project.handlers {
         if handler.name.is_empty() {
             report.push(
-                ErrorEntry::error(
-                    E_MISSING_FIELD,
-                    "Handler name is required",
-                    file,
-                    "$.name",
-                )
-                .with_suggestion("Add a 'name' field to the handler"),
+                ErrorEntry::error(E_MISSING_FIELD, "Handler name is required", file, "$.name")
+                    .with_suggestion("Add a 'name' field to the handler"),
             );
         }
     }

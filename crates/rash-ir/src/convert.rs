@@ -438,11 +438,7 @@ fn convert_ast_to_expr(
                 operand: Box::new(convert_ast_to_expr(operand, max_tier, bridge_langs)),
             }
         }
-        AstNode::CallExpr {
-            tier,
-            callee,
-            args,
-        } => {
+        AstNode::CallExpr { tier, callee, args } => {
             update_tier(max_tier, *tier);
             ExprIR::Call {
                 callee: Box::new(convert_ast_to_expr(callee, max_tier, bridge_langs)),
@@ -492,11 +488,7 @@ fn convert_ast_to_expr(
                     .collect(),
             }
         }
-        AstNode::ArrowFn {
-            tier,
-            params,
-            body,
-        } => {
+        AstNode::ArrowFn { tier, params, body } => {
             update_tier(max_tier, *tier);
             ExprIR::ArrowFn {
                 params: params.clone(),
@@ -863,7 +855,9 @@ mod tests {
             "tags": ["users"]
         });
         let route: RouteSpec = serde_json::from_value(route_json).unwrap();
-        project.routes.push(("routes/users.route.json".into(), route));
+        project
+            .routes
+            .push(("routes/users.route.json".into(), route));
 
         let ir = convert_project(&project).unwrap();
         assert_eq!(ir.routes.len(), 1);
@@ -943,7 +937,12 @@ mod tests {
         assert!(h.is_async);
         assert_eq!(h.params.len(), 1);
         assert_eq!(h.params[0].name, "ctx");
-        assert_eq!(h.return_type, TypeIR::Ref { name: "HttpResponse".into() });
+        assert_eq!(
+            h.return_type,
+            TypeIR::Ref {
+                name: "HttpResponse".into()
+            }
+        );
         assert_eq!(h.body.len(), 3);
         assert_eq!(h.max_tier, Tier::Domain);
         assert!(h.bridge_languages.is_empty());
@@ -979,7 +978,9 @@ mod tests {
             ]
         });
         let handler: HandlerSpec = serde_json::from_value(handler_json).unwrap();
-        project.handlers.push(("handlers/hash.handler.json".into(), handler));
+        project
+            .handlers
+            .push(("handlers/hash.handler.json".into(), handler));
 
         let ir = convert_project(&project).unwrap();
         let h = &ir.handlers[0];
@@ -1005,7 +1006,9 @@ mod tests {
             },
             meta: None,
         };
-        project.schemas.push(("schemas/user.schema.json".into(), schema));
+        project
+            .schemas
+            .push(("schemas/user.schema.json".into(), schema));
 
         let ir = convert_project(&project).unwrap();
         assert_eq!(ir.schemas.len(), 1);
@@ -1024,7 +1027,9 @@ mod tests {
             }
         });
         let model: ModelSpec = serde_json::from_value(model_json).unwrap();
-        project.models.push(("models/user.model.json".into(), model));
+        project
+            .models
+            .push(("models/user.model.json".into(), model));
 
         let ir = convert_project(&project).unwrap();
         assert_eq!(ir.models.len(), 1);
@@ -1065,7 +1070,9 @@ mod tests {
         assert_eq!(convert_type_ref_str("any"), TypeIR::Any);
         assert_eq!(
             convert_type_ref_str("MyCustomType"),
-            TypeIR::Ref { name: "MyCustomType".into() }
+            TypeIR::Ref {
+                name: "MyCustomType".into()
+            }
         );
     }
 

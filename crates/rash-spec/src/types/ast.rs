@@ -9,7 +9,6 @@ use super::common::{Language, Tier, TypeRef};
 #[serde(tag = "type")]
 pub enum AstNode {
     // ── Statements (Tier 0) ──
-
     /// Variable declaration: `let name = value`
     LetStatement {
         tier: Tier,
@@ -27,10 +26,7 @@ pub enum AstNode {
     },
 
     /// Return statement
-    ReturnStatement {
-        tier: Tier,
-        value: Box<AstNode>,
-    },
+    ReturnStatement { tier: Tier, value: Box<AstNode> },
 
     /// If/else conditional
     IfStatement {
@@ -75,19 +71,12 @@ pub enum AstNode {
     },
 
     /// Throw an error
-    ThrowStatement {
-        tier: Tier,
-        value: Box<AstNode>,
-    },
+    ThrowStatement { tier: Tier, value: Box<AstNode> },
 
     /// Expression used as statement
-    ExpressionStatement {
-        tier: Tier,
-        expr: Box<AstNode>,
-    },
+    ExpressionStatement { tier: Tier, expr: Box<AstNode> },
 
     // ── Expressions (Tier 0) ──
-
     /// Literal value (string, number, boolean, null)
     Literal {
         tier: Tier,
@@ -95,10 +84,7 @@ pub enum AstNode {
     },
 
     /// Variable reference
-    Identifier {
-        tier: Tier,
-        name: String,
-    },
+    Identifier { tier: Tier, name: String },
 
     /// Binary operation: `left op right`
     BinaryExpr {
@@ -143,10 +129,7 @@ pub enum AstNode {
     },
 
     /// Array literal: `[elem, ...]`
-    ArrayExpr {
-        tier: Tier,
-        elements: Vec<AstNode>,
-    },
+    ArrayExpr { tier: Tier, elements: Vec<AstNode> },
 
     /// Arrow/anonymous function
     ArrowFn {
@@ -156,16 +139,10 @@ pub enum AstNode {
     },
 
     /// Await expression
-    AwaitExpr {
-        tier: Tier,
-        expr: Box<AstNode>,
-    },
+    AwaitExpr { tier: Tier, expr: Box<AstNode> },
 
     /// Pipe expression: `a |> b |> c`
-    PipeExpr {
-        tier: Tier,
-        stages: Vec<AstNode>,
-    },
+    PipeExpr { tier: Tier, stages: Vec<AstNode> },
 
     /// Template string: `Hello ${name}`
     TemplateString {
@@ -174,7 +151,6 @@ pub enum AstNode {
     },
 
     // ── Domain Nodes (Tier 1) ──
-
     /// Database query (findOne, findMany, count, etc.)
     DbQuery {
         tier: Tier,
@@ -216,10 +192,7 @@ pub enum AstNode {
     },
 
     /// Request context access (params, query, body, headers)
-    CtxGet {
-        tier: Tier,
-        path: String,
-    },
+    CtxGet { tier: Tier, path: String },
 
     /// Schema validation
     Validate {
@@ -287,7 +260,6 @@ pub enum AstNode {
     },
 
     // ── Bridge Node (Tier 3) ──
-
     /// Native language bridge — locks to a specific language
     NativeBridge {
         tier: Tier,

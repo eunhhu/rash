@@ -145,7 +145,10 @@ mod tests {
         assert_eq!(json["type"], "HMU_ACK");
         assert_eq!(json["id"], "hmu_001");
         assert_eq!(json["status"], "success");
-        assert_eq!(json["applied"], serde_json::json!(["src/handlers/users.ts"]));
+        assert_eq!(
+            json["applied"],
+            serde_json::json!(["src/handlers/users.ts"])
+        );
         assert_eq!(json["failed"], serde_json::json!([]));
         assert!(json.get("rolledBack").is_none());
         assert_eq!(json["requiresRestart"], false);
@@ -194,27 +197,15 @@ mod tests {
 
     #[test]
     fn hmu_action_variants() {
-        assert_eq!(
-            serde_json::to_value(HmuAction::Replace).unwrap(),
-            "replace"
-        );
+        assert_eq!(serde_json::to_value(HmuAction::Replace).unwrap(), "replace");
         assert_eq!(serde_json::to_value(HmuAction::Add).unwrap(), "add");
         assert_eq!(serde_json::to_value(HmuAction::Remove).unwrap(), "remove");
     }
 
     #[test]
     fn hmu_status_variants() {
-        assert_eq!(
-            serde_json::to_value(HmuStatus::Success).unwrap(),
-            "success"
-        );
-        assert_eq!(
-            serde_json::to_value(HmuStatus::Partial).unwrap(),
-            "partial"
-        );
-        assert_eq!(
-            serde_json::to_value(HmuStatus::Failed).unwrap(),
-            "failed"
-        );
+        assert_eq!(serde_json::to_value(HmuStatus::Success).unwrap(), "success");
+        assert_eq!(serde_json::to_value(HmuStatus::Partial).unwrap(), "partial");
+        assert_eq!(serde_json::to_value(HmuStatus::Failed).unwrap(), "failed");
     }
 }

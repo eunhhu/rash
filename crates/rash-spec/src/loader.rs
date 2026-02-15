@@ -233,11 +233,7 @@ mod tests {
         .unwrap();
 
         // Invalid route
-        std::fs::write(
-            routes_dir.join("bad.route.json"),
-            r#"{ invalid json }"#,
-        )
-        .unwrap();
+        std::fs::write(routes_dir.join("bad.route.json"), r#"{ invalid json }"#).unwrap();
 
         let (project, report) = load_project(tmp.path()).unwrap();
         assert!(!report.ok);

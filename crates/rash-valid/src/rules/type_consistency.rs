@@ -8,10 +8,7 @@ pub fn check(project: &LoadedProject, _index: &SpecIndex, report: &mut Validatio
 }
 
 /// Verify that the target language and framework are compatible
-fn check_language_framework_compatibility(
-    project: &LoadedProject,
-    report: &mut ValidationReport,
-) {
+fn check_language_framework_compatibility(project: &LoadedProject, report: &mut ValidationReport) {
     use rash_spec::types::common::{Framework, Language};
 
     let lang = project.config.target.language;
@@ -28,7 +25,10 @@ fn check_language_framework_compatibility(
         ),
         Language::Rust => matches!(fw, Framework::Actix | Framework::Axum | Framework::Rocket),
         Language::Python => {
-            matches!(fw, Framework::FastAPI | Framework::Django | Framework::Flask)
+            matches!(
+                fw,
+                Framework::FastAPI | Framework::Django | Framework::Flask
+            )
         }
         Language::Go => matches!(fw, Framework::Gin | Framework::Echo | Framework::Fiber),
     };

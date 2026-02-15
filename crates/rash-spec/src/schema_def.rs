@@ -145,7 +145,11 @@ mod tests {
 
         // Root-level errors should have "$" path
         for err in &errors {
-            assert!(err.path.starts_with('$'), "Path should start with $: {}", err.path);
+            assert!(
+                err.path.starts_with('$'),
+                "Path should start with $: {}",
+                err.path
+            );
         }
     }
 

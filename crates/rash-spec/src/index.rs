@@ -162,36 +162,28 @@ pub fn build_index(project: &crate::loader::LoadedProject) -> (SpecIndex, Vec<Er
 
     // Register handlers
     for (file, handler) in &project.handlers {
-        if let Some(err) =
-            index.register(&handler.name, SymbolKind::Handler, file, "$.name")
-        {
+        if let Some(err) = index.register(&handler.name, SymbolKind::Handler, file, "$.name") {
             errors.push(err);
         }
     }
 
     // Register middleware
     for (file, mw) in &project.middleware {
-        if let Some(err) =
-            index.register(&mw.name, SymbolKind::Middleware, file, "$.name")
-        {
+        if let Some(err) = index.register(&mw.name, SymbolKind::Middleware, file, "$.name") {
             errors.push(err);
         }
     }
 
     // Register models
     for (file, model) in &project.models {
-        if let Some(err) =
-            index.register(&model.name, SymbolKind::Model, file, "$.name")
-        {
+        if let Some(err) = index.register(&model.name, SymbolKind::Model, file, "$.name") {
             errors.push(err);
         }
     }
 
     // Register routes
     for (file, route) in &project.routes {
-        if let Some(err) =
-            index.register(&route.path, SymbolKind::Route, file, "$.path")
-        {
+        if let Some(err) = index.register(&route.path, SymbolKind::Route, file, "$.path") {
             errors.push(err);
         }
     }
@@ -213,7 +205,12 @@ mod tests {
     fn test_register_and_lookup() {
         let mut index = SpecIndex::new();
         assert!(index
-            .register("UserResponse", SymbolKind::Schema, "user.schema.json", "$.definitions.UserResponse")
+            .register(
+                "UserResponse",
+                SymbolKind::Schema,
+                "user.schema.json",
+                "$.definitions.UserResponse"
+            )
             .is_none());
 
         let entry = index.lookup("UserResponse", SymbolKind::Schema).unwrap();

@@ -267,7 +267,10 @@ mod tests {
             table_name: "users".to_string(),
             columns: {
                 let mut c = IndexMap::new();
-                c.insert("id".to_string(), serde_json::json!({ "type": "uuid", "primaryKey": true }));
+                c.insert(
+                    "id".to_string(),
+                    serde_json::json!({ "type": "uuid", "primaryKey": true }),
+                );
                 c
             },
             relations: IndexMap::new(),
@@ -291,6 +294,9 @@ mod tests {
         let json = serde_json::to_value(&mw).unwrap();
         let deserialized: MiddlewareIR = serde_json::from_value(json).unwrap();
         assert_eq!(deserialized.name, "auth");
-        assert_eq!(deserialized.handler_ref.as_deref(), Some("auth.verifyToken"));
+        assert_eq!(
+            deserialized.handler_ref.as_deref(),
+            Some("auth.verifyToken")
+        );
     }
 }

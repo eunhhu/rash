@@ -226,14 +226,8 @@ mod tests {
 
     #[test]
     fn test_http_method_serialization() {
-        assert_eq!(
-            serde_json::to_value(HttpMethod::Get).unwrap(),
-            "GET"
-        );
-        assert_eq!(
-            serde_json::to_value(HttpMethod::Post).unwrap(),
-            "POST"
-        );
+        assert_eq!(serde_json::to_value(HttpMethod::Get).unwrap(), "GET");
+        assert_eq!(serde_json::to_value(HttpMethod::Post).unwrap(), "POST");
     }
 
     #[test]
@@ -242,38 +236,20 @@ mod tests {
             serde_json::to_value(Language::Typescript).unwrap(),
             "typescript"
         );
-        assert_eq!(
-            serde_json::to_value(Language::Rust).unwrap(),
-            "rust"
-        );
+        assert_eq!(serde_json::to_value(Language::Rust).unwrap(), "rust");
     }
 
     #[test]
     fn test_framework_serialization() {
-        assert_eq!(
-            serde_json::to_value(Framework::Express).unwrap(),
-            "express"
-        );
-        assert_eq!(
-            serde_json::to_value(Framework::FastAPI).unwrap(),
-            "fastapi"
-        );
-        assert_eq!(
-            serde_json::to_value(Framework::NestJS).unwrap(),
-            "nestjs"
-        );
+        assert_eq!(serde_json::to_value(Framework::Express).unwrap(), "express");
+        assert_eq!(serde_json::to_value(Framework::FastAPI).unwrap(), "fastapi");
+        assert_eq!(serde_json::to_value(Framework::NestJS).unwrap(), "nestjs");
     }
 
     #[test]
     fn test_severity_serialization() {
-        assert_eq!(
-            serde_json::to_value(Severity::Error).unwrap(),
-            "error"
-        );
-        assert_eq!(
-            serde_json::to_value(Severity::Warning).unwrap(),
-            "warning"
-        );
+        assert_eq!(serde_json::to_value(Severity::Error).unwrap(), "error");
+        assert_eq!(serde_json::to_value(Severity::Warning).unwrap(), "warning");
     }
 
     #[test]

@@ -51,12 +51,9 @@ pub fn check(project: &LoadedProject, resolver: &Resolver, report: &mut Validati
                 }
                 if let Some(body) = &req.body {
                     let path = format!("$.methods.{}.request.body.ref", method_str);
-                    if let Err(err) = resolver.resolve_or_error(
-                        &body.reference,
-                        RefContext::Schema,
-                        file,
-                        &path,
-                    ) {
+                    if let Err(err) =
+                        resolver.resolve_or_error(&body.reference, RefContext::Schema, file, &path)
+                    {
                         report.push(err);
                     }
                 }
@@ -115,12 +112,8 @@ pub fn check(project: &LoadedProject, resolver: &Resolver, report: &mut Validati
     for (file, model) in &project.models {
         for (rel_name, rel) in &model.relations {
             let path = format!("$.relations.{}.target", rel_name);
-            if let Err(err) = resolver.resolve_or_error(
-                &rel.target,
-                RefContext::Model,
-                file,
-                &path,
-            ) {
+            if let Err(err) = resolver.resolve_or_error(&rel.target, RefContext::Model, file, &path)
+            {
                 report.push(err);
             }
         }

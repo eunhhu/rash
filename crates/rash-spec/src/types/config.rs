@@ -2,9 +2,7 @@ use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::common::{
-    DatabaseType, Framework, Language, Meta, Orm, Protocol, Ref, Runtime,
-};
+use super::common::{DatabaseType, Framework, Language, Meta, Orm, Protocol, Ref, Runtime};
 
 /// Top-level project configuration (rash.config.json)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]

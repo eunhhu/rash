@@ -183,7 +183,10 @@ mod tests {
         assert!(model.columns["id"].primary_key);
         assert!(model.columns["email"].unique);
         assert_eq!(model.relations.len(), 2);
-        assert_eq!(model.relations["posts"].relation_type, RelationType::HasMany);
+        assert_eq!(
+            model.relations["posts"].relation_type,
+            RelationType::HasMany
+        );
         assert_eq!(model.indexes.len(), 3);
         assert!(model.indexes[0].unique);
         assert_eq!(

@@ -77,7 +77,10 @@ impl ValidationReport {
 
     /// Count errors of a specific severity
     pub fn count(&self, severity: Severity) -> usize {
-        self.errors.iter().filter(|e| e.severity == severity).count()
+        self.errors
+            .iter()
+            .filter(|e| e.severity == severity)
+            .count()
     }
 
     /// Check if any errors exist (not warnings/info)
@@ -130,9 +133,7 @@ mod tests {
             message: "Referenced schema 'UserResponse' was not found".to_string(),
             file: "routes/api/v1/users.route.json".to_string(),
             path: "$.methods.GET.response.200.schema.ref".to_string(),
-            suggestion: Some(
-                "Create schema 'UserResponse' or fix the ref name".to_string(),
-            ),
+            suggestion: Some("Create schema 'UserResponse' or fix the ref name".to_string()),
         };
 
         let json = serde_json::to_value(&entry).unwrap();
@@ -160,9 +161,7 @@ mod tests {
                 message: "Referenced schema 'UserResponse' was not found".to_string(),
                 file: "routes/api/v1/users.route.json".to_string(),
                 path: "$.methods.GET.response.200.schema.ref".to_string(),
-                suggestion: Some(
-                    "Create schema 'UserResponse' or fix the ref name".to_string(),
-                ),
+                suggestion: Some("Create schema 'UserResponse' or fix the ref name".to_string()),
             }],
         };
 
@@ -181,15 +180,21 @@ mod tests {
 
     #[test]
     fn test_validation_report_from_errors() {
-        let errors = vec![
-            ErrorEntry::warning("W_001", "some warning", "file.json", "$.path"),
-        ];
+        let errors = vec![ErrorEntry::warning(
+            "W_001",
+            "some warning",
+            "file.json",
+            "$.path",
+        )];
         let report = ValidationReport::from_errors(errors);
         assert!(report.ok); // warnings don't make it fail
 
-        let errors = vec![
-            ErrorEntry::error(E_REF_NOT_FOUND, "not found", "file.json", "$.path"),
-        ];
+        let errors = vec![ErrorEntry::error(
+            E_REF_NOT_FOUND,
+            "not found",
+            "file.json",
+            "$.path",
+        )];
         let report = ValidationReport::from_errors(errors);
         assert!(!report.ok);
     }
