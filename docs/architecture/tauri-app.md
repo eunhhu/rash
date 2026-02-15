@@ -2,6 +2,8 @@
 
 Rash는 Tauri v2 기반 데스크톱 앱이다. Rust 백엔드가 핵심 엔진을 담당하고, SolidJS 프론트엔드가 GUI를 제공한다.
 
+> 문서 상태: **Current (MVP UI/기능)** + **Target (Phase 6+ 확장 UI)** 를 함께 포함한다.
+
 ## 프로젝트 파일 구조
 
 ```
@@ -67,7 +69,7 @@ rash/
 │   │   ├── runtime/
 │   │   │   ├── ServerControl.tsx  # 서버 시작/정지 버튼
 │   │   │   ├── LogViewer.tsx      # 실시간 로그
-│   │   │   └── TestRunner.tsx     # API 테스트 UI
+│   │   │   └── TestRunner.tsx     # API 테스트 UI (Phase 6, MVP에서는 숨김/비활성)
 │   │   └── common/
 │   │       ├── MonacoEditor.tsx   # Monaco 에디터 래퍼
 │   │       ├── JsonViewer.tsx     # JSON 트리 뷰어
@@ -512,7 +514,7 @@ App
 │   │   └── SplitPane (좌: 에디터, 우: 미리보기)
 │   └── BottomPanel
 │       ├── LogViewer
-│       ├── TestRunner
+│       ├── TestRunner (Phase 6, MVP에서는 비활성 슬롯)
 │       └── Terminal
 └── Modals
     ├── CreateProjectDialog

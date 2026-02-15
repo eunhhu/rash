@@ -2,6 +2,8 @@
 
 Rash의 코드 생성은 Spec → IR → Emitter → Framework Adapter → Code 순서로 진행된다. Rust의 trait 시스템을 활용하여 언어와 프레임워크를 조합할 수 있도록 설계한다.
 
+> 문서 상태: **Current (MVP 구현 우선순위)** + **Target (최종 지원 범위)** 를 함께 표시한다.
+
 ## 파이프라인 개요
 
 ```
@@ -502,11 +504,16 @@ impl IncrementalCodegen {
 
 ## 지원 타겟 매트릭스
 
+범례:
+- `MVP`: Phase 1~4에서 우선 구현
+- `Planned`: 설계상 지원 대상 (Phase 5+ 또는 후속 릴리즈)
+
 | | Express | Fastify | Hono | Elysia | NestJS | Actix | Axum | FastAPI | Django | Gin | Echo |
 |-|---------|---------|------|--------|--------|-------|------|---------|--------|-----|------|
-| **라우트** | O | O | O | O | O | O | O | O | O | O | O |
-| **미들웨어** | O | O | O | O | O | O | O | O | O | O | O |
-| **DTO/스키마** | O | O | O | O | O | O | O | O | O | O | O |
-| **ORM** | Prisma | Prisma | Prisma | Prisma | TypeORM | SeaORM | SeaORM | SQLAlchemy | Django ORM | GORM | GORM |
-| **인증** | O | O | O | O | O | O | O | O | O | O | O |
-| **WebSocket** | O | O | O | O | O | O | O | - | - | O | O |
+| **상태** | MVP | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| **라우트** | MVP | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| **미들웨어** | MVP | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| **DTO/스키마** | MVP | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| **ORM** | Prisma (MVP) | Prisma | Prisma | Prisma | TypeORM | SeaORM | SeaORM | SQLAlchemy | Django ORM | GORM | GORM |
+| **인증** | MVP | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| **WebSocket** | Planned | Planned | Planned | Planned | Planned | Planned | Planned | - | - | Planned | Planned |
