@@ -3,16 +3,42 @@ use schemars::schema_for;
 
 use crate::types::config::RashConfig;
 use crate::types::error::{ErrorEntry, E_SCHEMA_VIOLATION};
+use crate::types::handler::HandlerSpec;
+use crate::types::middleware::MiddlewareSpec;
+use crate::types::model::ModelSpec;
+use crate::types::route::RouteSpec;
+use crate::types::schema::SchemaSpec;
 
 /// Generate a JSON Schema for `RashConfig`.
 pub fn generate_config_schema() -> serde_json::Value {
     serde_json::to_value(schema_for!(RashConfig)).expect("schema serialization should not fail")
 }
 
+pub fn generate_route_schema() -> serde_json::Value {
+    serde_json::to_value(schema_for!(RouteSpec)).expect("schema serialization should not fail")
+}
+
+pub fn generate_schema_schema() -> serde_json::Value {
+    serde_json::to_value(schema_for!(SchemaSpec)).expect("schema serialization should not fail")
+}
+
+pub fn generate_model_schema() -> serde_json::Value {
+    serde_json::to_value(schema_for!(ModelSpec)).expect("schema serialization should not fail")
+}
+
+pub fn generate_middleware_schema() -> serde_json::Value {
+    serde_json::to_value(schema_for!(MiddlewareSpec)).expect("schema serialization should not fail")
+}
+
+pub fn generate_handler_schema() -> serde_json::Value {
+    serde_json::to_value(schema_for!(HandlerSpec)).expect("schema serialization should not fail")
+}
+
 /// Validate a JSON value against a JSON Schema, returning errors in `ErrorEntry` format.
 pub fn validate_against_schema(
     value: &serde_json::Value,
     schema: &serde_json::Value,
+    file: &str,
 ) -> Vec<ErrorEntry> {
     let compiled = match Validator::new(schema) {
         Ok(v) => v,
@@ -20,7 +46,7 @@ pub fn validate_against_schema(
             return vec![ErrorEntry::error(
                 E_SCHEMA_VIOLATION,
                 format!("Invalid schema: {e}"),
-                "",
+                file,
                 "$",
             )];
         }
@@ -35,7 +61,7 @@ pub fn validate_against_schema(
             } else {
                 format!("${instance_path}")
             };
-            ErrorEntry::error(E_SCHEMA_VIOLATION, err.to_string(), "", &path)
+            ErrorEntry::error(E_SCHEMA_VIOLATION, err.to_string(), file, &path)
         })
         .collect()
 }
@@ -76,7 +102,7 @@ mod tests {
         let schema = generate_config_schema();
         let config = valid_config_json();
 
-        let errors = validate_against_schema(&config, &schema);
+        let errors = validate_against_schema(&config, &schema, "rash.config.json");
         assert!(errors.is_empty(), "Expected no errors, got: {errors:?}");
     }
 
@@ -88,7 +114,7 @@ mod tests {
             // missing: name, target, server
         });
 
-        let errors = validate_against_schema(&config, &schema);
+        let errors = validate_against_schema(&config, &schema, "rash.config.json");
         assert!(!errors.is_empty(), "Expected errors for missing fields");
 
         // All errors should use E_SCHEMA_VIOLATION code
@@ -107,7 +133,7 @@ mod tests {
             "server": "not an object"
         });
 
-        let errors = validate_against_schema(&config, &schema);
+        let errors = validate_against_schema(&config, &schema, "rash.config.json");
         assert!(!errors.is_empty(), "Expected errors for wrong types");
     }
 
@@ -128,7 +154,7 @@ mod tests {
             }
         });
 
-        let errors = validate_against_schema(&config, &schema);
+        let errors = validate_against_schema(&config, &schema, "rash.config.json");
         assert!(!errors.is_empty(), "Expected errors for invalid enum value");
     }
 
@@ -140,7 +166,7 @@ mod tests {
             // missing required fields
         });
 
-        let errors = validate_against_schema(&config, &schema);
+        let errors = validate_against_schema(&config, &schema, "rash.config.json");
         assert!(!errors.is_empty());
 
         // Root-level errors should have "$" path
@@ -192,7 +218,7 @@ mod tests {
             }
         });
 
-        let errors = validate_against_schema(&config, &schema);
+        let errors = validate_against_schema(&config, &schema, "rash.config.json");
         assert!(errors.is_empty(), "Expected no errors, got: {errors:?}");
     }
 }

@@ -36,7 +36,7 @@ clap = { version = "4", features = ["derive"] }
 colored = "2"
 
 # JSON Schema
-schemars = "0.8"
+schemars = { version = "0.8", features = ["indexmap2"] }
 jsonschema = "0.28"
 
 # Internal crates

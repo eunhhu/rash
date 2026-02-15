@@ -1,10 +1,11 @@
 use indexmap::IndexMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::common::{Meta, Ref};
 
 /// Model specification (*.model.json) — Database table/collection definition
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelSpec {
     /// JSON Schema reference
@@ -43,7 +44,7 @@ pub struct ModelSpec {
 }
 
 /// Column specification
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ColumnSpec {
     /// Column type (e.g., "uuid", "varchar(255)", "timestamp")
@@ -84,7 +85,7 @@ fn is_false(v: &bool) -> bool {
 }
 
 /// Relation specification
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RelationSpec {
     /// Relation type
@@ -99,7 +100,7 @@ pub struct RelationSpec {
 }
 
 /// Types of model relations
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum RelationType {
     HasOne,
@@ -109,7 +110,7 @@ pub enum RelationType {
 }
 
 /// Index specification
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct IndexSpec {
     /// Column names included in the index
     pub columns: Vec<String>,

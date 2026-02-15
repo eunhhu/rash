@@ -1,10 +1,11 @@
 use indexmap::IndexMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::common::{Meta, Ref};
 
 /// Middleware specification (*.middleware.json)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct MiddlewareSpec {
     /// JSON Schema reference
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
@@ -51,7 +52,7 @@ pub struct MiddlewareSpec {
 }
 
 /// Middleware type
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum MiddlewareType {
     Request,
@@ -61,7 +62,7 @@ pub enum MiddlewareType {
 }
 
 /// Middleware error definition
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct MiddlewareError {
     pub status: u16,
     pub message: String,

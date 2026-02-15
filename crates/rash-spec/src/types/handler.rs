@@ -1,11 +1,12 @@
 use indexmap::IndexMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::ast::AstNode;
 use super::common::{Language, Meta, TypeRef};
 
 /// Handler specification (*.handler.json)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct HandlerSpec {
     /// JSON Schema reference
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
@@ -39,7 +40,7 @@ pub struct HandlerSpec {
 }
 
 /// Handler parameter definition
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct HandlerParam {
     #[serde(rename = "type")]
     pub param_type: String,
@@ -48,7 +49,7 @@ pub struct HandlerParam {
 }
 
 /// Handler-specific metadata
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct HandlerMeta {
     /// Maximum tier of any AST node in this handler

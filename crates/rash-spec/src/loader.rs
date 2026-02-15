@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 use crate::parser::{self, SpecFileType};
+use crate::schema_def;
 use crate::types::config::RashConfig;
 use crate::types::error::{ErrorEntry, ValidationReport, E_PARSE_ERROR};
 use crate::types::handler::HandlerSpec;
@@ -30,11 +31,31 @@ pub struct LoadedProject {
     pub handlers: Vec<(String, HandlerSpec)>,
 }
 
+fn json_parse_error_entry(err: serde_json::Error, file_path: &str) -> ErrorEntry {
+    let line = err.line();
+    let col = err.column();
+    let path = format!("$.line:{line}:col:{col}");
+    ErrorEntry::error(
+        E_PARSE_ERROR,
+        format!("JSON parse error: {err}"),
+        file_path,
+        &path,
+    )
+    .with_suggestion("Check JSON syntax and field types")
+}
+
 /// Load and parse an entire Rash project directory.
 /// Accumulates errors instead of failing on the first one.
 #[allow(clippy::result_large_err)]
 pub fn load_project(project_dir: &Path) -> Result<(LoadedProject, ValidationReport), LoadError> {
     let mut report = ValidationReport::success();
+
+    let config_schema = schema_def::generate_config_schema();
+    let route_schema = schema_def::generate_route_schema();
+    let schema_schema = schema_def::generate_schema_schema();
+    let model_schema = schema_def::generate_model_schema();
+    let middleware_schema = schema_def::generate_middleware_schema();
+    let handler_schema = schema_def::generate_handler_schema();
 
     // Check directory exists
     if !project_dir.is_dir() {
@@ -53,6 +74,14 @@ pub fn load_project(project_dir: &Path) -> Result<(LoadedProject, ValidationRepo
 
     let config_content = std::fs::read_to_string(&config_path)
         .map_err(|e| LoadError::IoError(config_path.to_string_lossy().into_owned(), e))?;
+
+    if let Ok(config_value) = serde_json::from_str::<serde_json::Value>(&config_content) {
+        for entry in
+            schema_def::validate_against_schema(&config_value, &config_schema, "rash.config.json")
+        {
+            report.push(entry);
+        }
+    }
 
     let config = match parser::parse_config(&config_content, "rash.config.json") {
         Ok(c) => c,
@@ -101,6 +130,40 @@ pub fn load_project(project_dir: &Path) -> Result<(LoadedProject, ValidationRepo
                 continue;
             }
         };
+
+        let json_value = match serde_json::from_str::<serde_json::Value>(&content) {
+            Ok(v) => v,
+            Err(e) => {
+                report.push(json_parse_error_entry(e, &rel_path));
+                continue;
+            }
+        };
+
+        let schema_errors = match spec_type {
+            SpecFileType::Config => Vec::new(),
+            SpecFileType::Route => {
+                schema_def::validate_against_schema(&json_value, &route_schema, &rel_path)
+            }
+            SpecFileType::Schema => {
+                schema_def::validate_against_schema(&json_value, &schema_schema, &rel_path)
+            }
+            SpecFileType::Model => {
+                schema_def::validate_against_schema(&json_value, &model_schema, &rel_path)
+            }
+            SpecFileType::Middleware => {
+                schema_def::validate_against_schema(&json_value, &middleware_schema, &rel_path)
+            }
+            SpecFileType::Handler => {
+                schema_def::validate_against_schema(&json_value, &handler_schema, &rel_path)
+            }
+        };
+
+        if !schema_errors.is_empty() {
+            for entry in schema_errors {
+                report.push(entry);
+            }
+            continue;
+        }
 
         match spec_type {
             SpecFileType::Config => {

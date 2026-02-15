@@ -1,3 +1,5 @@
+use schemars::gen::SchemaGenerator;
+use schemars::schema::{InstanceType, Schema, SchemaObject, SingleOrVec};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +13,7 @@ pub struct Ref {
 }
 
 /// Type reference used in AST nodes
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum TypeRef {
     /// Simple type: "string", "number", etc.
@@ -41,6 +43,26 @@ pub enum Tier {
     Bridge = 3,
 }
 
+impl JsonSchema for Tier {
+    fn schema_name() -> String {
+        "Tier".to_string()
+    }
+
+    fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+        let obj = SchemaObject {
+            instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::Integer))),
+            enum_values: Some(vec![
+                serde_json::json!(0),
+                serde_json::json!(1),
+                serde_json::json!(2),
+                serde_json::json!(3),
+            ]),
+            ..Default::default()
+        };
+        Schema::Object(obj)
+    }
+}
+
 impl Serialize for Tier {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_u8(*self as u8)
@@ -63,7 +85,7 @@ impl<'de> Deserialize<'de> for Tier {
 }
 
 /// HTTP methods
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum HttpMethod {
     Get,
@@ -169,7 +191,7 @@ pub struct Meta {
 }
 
 /// Error/warning severity levels
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Severity {
     Error,

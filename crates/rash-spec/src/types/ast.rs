@@ -1,11 +1,12 @@
 use indexmap::IndexMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::common::{Language, Tier, TypeRef};
 
 /// AST Node — all handler logic is represented as a tree of these nodes.
 /// Uses internal tagging: `#[serde(tag = "type")]`
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "type")]
 pub enum AstNode {
     // ── Statements (Tier 0) ──
@@ -275,21 +276,21 @@ pub enum AstNode {
 }
 
 /// Match arm for MatchStatement
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct MatchArm {
     pub pattern: AstNode,
     pub body: Vec<AstNode>,
 }
 
 /// Catch clause for TryCatchStatement
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct CatchClause {
     pub binding: String,
     pub body: Vec<AstNode>,
 }
 
 /// Template string part
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind")]
 pub enum TemplatePart {
     #[serde(rename = "text")]
@@ -299,21 +300,21 @@ pub enum TemplatePart {
 }
 
 /// NativeBridge import declaration
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct NativeBridgeImport {
     pub name: String,
     pub from: String,
 }
 
 /// NativeBridge function call
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct NativeBridgeCall {
     pub method: String,
     pub args: Vec<AstNode>,
 }
 
 /// NativeBridge fallback node
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct NativeBridgeFallback {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,

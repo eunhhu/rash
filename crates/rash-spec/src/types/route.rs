@@ -1,10 +1,11 @@
 use indexmap::IndexMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::common::{HttpMethod, Meta, Ref};
 
 /// Route specification (*.route.json)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RouteSpec {
     /// JSON Schema reference
@@ -35,7 +36,7 @@ pub struct RouteSpec {
 }
 
 /// Path parameter specification
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct ParamSpec {
     #[serde(rename = "type")]
     pub param_type: String,
@@ -46,7 +47,7 @@ pub struct ParamSpec {
 }
 
 /// Single HTTP endpoint specification
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EndpointSpec {
     /// Unique operation identifier
@@ -74,7 +75,7 @@ pub struct EndpointSpec {
 }
 
 /// Request specification
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestSpec {
     /// Query parameters schema reference
@@ -91,7 +92,7 @@ pub struct RequestSpec {
 }
 
 /// Request body specification
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestBodySpec {
     #[serde(rename = "ref")]
@@ -102,7 +103,7 @@ pub struct RequestBodySpec {
 }
 
 /// Response specification
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct ResponseSpec {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
