@@ -93,6 +93,31 @@ my-server/
 }
 ```
 
+### 버전/마이그레이션 정책
+
+`rash.config.json.version`은 스펙 저장 포맷 버전이다. `meta.rashVersion`(앱 버전)과 구분한다.
+
+- 앱이 프로젝트를 열 때, 현재 파서가 지원하는 스펙 버전인지 먼저 검사한다.
+- 구버전 스펙이면 `MigrationRunner`가 순차적으로 업그레이드를 수행한다.
+- 마이그레이션은 항상 `vN -> vN+1` 단위의 작은 단계로만 정의한다.
+- 실패 시 파일을 덮어쓰지 않고, `.rash/migrations/<timestamp>/`에 백업 후 중단한다.
+
+예시:
+- 지원 범위: `1.x`
+- 입력 프로젝트: `0.9.0`
+- 실행 순서: `0.9 -> 1.0`
+- 결과: 성공 시 `version: "1.0.0"`으로 갱신
+
+```json
+{
+  "version": "1.0.0",
+  "meta": {
+    "rashVersion": "0.1.0",
+    "lastMigratedFrom": "0.9.0"
+  }
+}
+```
+
 ### target 필드 상세
 
 | 필드 | 타입 | 설명 | 허용 값 |
@@ -500,6 +525,50 @@ class CreateUserBody(BaseModel):
 | 미들웨어 | `middlewareName` | `{ "ref": "auth" }` |
 | 모델 | `ModelName` | `{ "ref": "User" }` |
 | 외부 스키마 | `file#definition` | `{ "ref": "common.schema#Pagination" }` |
+
+### Resolver 결정 규칙
+
+Resolver는 동일 입력에 대해 항상 동일 결과를 반환해야 한다.
+
+1. **타입 판별**: 참조가 쓰인 필드 문맥으로 대상 타입(스키마/핸들러/미들웨어/모델)을 먼저 고정한다.
+2. **로컬 우선**: 동일 타입에서 현재 프로젝트 루트의 인덱스(`SpecIndex`)를 먼저 탐색한다.
+3. **정규화 키 사용**: 대소문자/구분자 차이를 정규화한 canonical key로 조회한다.
+4. **외부 참조 분리**: `file#definition`은 파일 로드 후 로컬 네임스페이스와 충돌 없이 별도 해석한다.
+5. **모호성 금지**: 후보가 2개 이상이면 자동 선택하지 않고 `E_REF_AMBIGUOUS`를 반환한다.
+
+에러 정책:
+- 미존재 참조: `E_REF_NOT_FOUND`
+- 타입 불일치 참조: `E_REF_TYPE_MISMATCH`
+- 순환 참조: `E_REF_CYCLE`
+- 중복 정의: `E_DUPLICATE_SYMBOL`
+
+### 검증 스키마/에러 포맷 표준
+
+검증기는 JSON Schema 오류와 도메인 규칙 오류를 동일 포맷으로 반환한다.
+
+```json
+{
+  "ok": false,
+  "errors": [
+    {
+      "code": "E_REF_NOT_FOUND",
+      "severity": "error",
+      "message": "Referenced schema 'UserResponse' was not found",
+      "file": "routes/api/v1/users.route.json",
+      "path": "$.methods.GET.response.200.schema.ref",
+      "suggestion": "Create schema 'UserResponse' or fix the ref name"
+    }
+  ]
+}
+```
+
+필수 필드:
+- `code`: 기계가 처리할 수 있는 안정적 오류 코드
+- `severity`: `error | warning | info`
+- `file`: 상대 경로
+- `path`: JSONPath
+- `message`: 사용자 표시용 문장
+- `suggestion`: 자동 수정/가이드 문구
 
 ## 파일 네이밍 규칙
 
