@@ -44,6 +44,7 @@ docs/
 │   ├── overview.md                    # 시스템 아키텍처 총괄
 │   ├── spec-format.md                 # 프로젝트 파일/스펙 포맷
 │   ├── ast-dsl.md                     # AST/DSL 노드 설계
+│   ├── advanced-features.md            # 고급 기능 (컴포넌트/상태/추상화)
 │   ├── codegen.md                     # 코드 생성 파이프라인
 │   ├── tauri-app.md                   # Tauri 앱 구조
 │   └── runtime.md                     # 런타임 시스템
@@ -54,10 +55,11 @@ docs/
 
 1. **처음 접하는 경우**: 이 파일 → [아키텍처 총괄](architecture/overview.md) → [스펙 포맷](architecture/spec-format.md)
 2. **DSL/AST에 관심**: [AST/DSL 설계](architecture/ast-dsl.md)
-3. **코드 변환기 작업**: [코드 생성 파이프라인](architecture/codegen.md)
-4. **앱 개발**: [Tauri 앱 구조](architecture/tauri-app.md)
-5. **런타임/실행**: [런타임 시스템](architecture/runtime.md)
-6. **로드맵 확인**: [구현 로드맵](roadmap.md)
+3. **고급 추상화/재사용 설계**: [고급 기능](architecture/advanced-features.md)
+4. **코드 변환기 작업**: [코드 생성 파이프라인](architecture/codegen.md)
+5. **앱 개발**: [Tauri 앱 구조](architecture/tauri-app.md)
+6. **런타임/실행**: [런타임 시스템](architecture/runtime.md)
+7. **로드맵 확인**: [구현 로드맵](roadmap.md)
 
 ## 용어 사전
 
