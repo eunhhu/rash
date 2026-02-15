@@ -1,0 +1,37 @@
+{
+  "name": "users.deleteUser",
+  "description": "Delete a user by ID",
+  "async": true,
+  "body": [
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "userId",
+      "value": { "type": "CtxGet", "tier": 1, "path": "params.id" }
+    },
+    {
+      "type": "ExpressionStatement",
+      "tier": 0,
+      "expr": {
+        "type": "AwaitExpr",
+        "tier": 1,
+        "expr": {
+          "type": "DbMutate",
+          "tier": 1,
+          "model": "User",
+          "operation": "delete",
+          "where": { "id": { "type": "Identifier", "tier": 0, "name": "userId" } }
+        }
+      }
+    },
+    {
+      "type": "ReturnStatement",
+      "tier": 0,
+      "value": {
+        "type": "HttpRespond",
+        "tier": 1,
+        "status": 204
+      }
+    }
+  ]
+}

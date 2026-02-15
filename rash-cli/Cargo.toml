@@ -1,0 +1,20 @@
+[package]
+name = "rash-cli"
+description = "Rash CLI: init, validate, and manage Rash projects"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "rash"
+path = "src/main.rs"
+
+[dependencies]
+rash-spec = { workspace = true }
+rash-ir = { workspace = true }
+rash-valid = { workspace = true }
+clap = { workspace = true }
+colored = { workspace = true }
+anyhow = { workspace = true }
+serde_json = { workspace = true }

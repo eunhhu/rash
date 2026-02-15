@@ -1,0 +1,43 @@
+{
+  "$schema": "https://rash.dev/schemas/config.json",
+  "version": "1.0.0",
+  "name": "golden-user-crud",
+  "description": "Golden test fixture for User CRUD",
+
+  "target": {
+    "language": "typescript",
+    "framework": "express",
+    "runtime": "bun"
+  },
+
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "protocol": "http",
+    "basePath": "/api"
+  },
+
+  "database": {
+    "type": "postgresql",
+    "orm": "prisma"
+  },
+
+  "codegen": {
+    "outDir": "./dist",
+    "sourceMap": true,
+    "strict": true
+  },
+
+  "middleware": {
+    "global": [
+      { "ref": "cors" }
+    ]
+  },
+
+  "plugins": [],
+
+  "meta": {
+    "createdAt": "2026-01-15T00:00:00Z",
+    "rashVersion": "0.1.0"
+  }
+}

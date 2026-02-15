@@ -1,0 +1,16 @@
+[package]
+name = "rash-runtime"
+description = "Rash runtime types: HMU protocol and preflight checks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta = { workspace = true }

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://rash.dev/schemas/route.json",
+  "path": "/test",
+  "description": "Route with missing handler reference",
+
+  "methods": {
+    "GET": {
+      "operationId": "doSomething",
+      "summary": "Test endpoint",
+      "handler": { "ref": "nonexistent.doSomething" },
+      "response": {
+        "200": {
+          "description": "OK"
+        }
+      }
+    }
+  }
+}

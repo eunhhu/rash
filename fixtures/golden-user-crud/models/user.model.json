@@ -1,0 +1,73 @@
+{
+  "$schema": "https://rash.dev/schemas/model.json",
+  "name": "User",
+  "description": "Users table",
+  "tableName": "users",
+
+  "columns": {
+    "id": {
+      "type": "uuid",
+      "primaryKey": true,
+      "default": "gen_random_uuid()"
+    },
+    "email": {
+      "type": "varchar(255)",
+      "unique": true,
+      "nullable": false,
+      "index": true
+    },
+    "passwordHash": {
+      "type": "varchar(255)",
+      "nullable": false
+    },
+    "name": {
+      "type": "varchar(100)",
+      "nullable": false
+    },
+    "role": {
+      "type": "enum",
+      "values": ["admin", "user", "moderator"],
+      "default": "user",
+      "nullable": false
+    },
+    "createdAt": {
+      "type": "timestamp",
+      "default": "now()",
+      "nullable": false
+    },
+    "updatedAt": {
+      "type": "timestamp",
+      "default": "now()",
+      "nullable": false,
+      "onUpdate": "now()"
+    },
+    "deletedAt": {
+      "type": "timestamp",
+      "nullable": true
+    }
+  },
+
+  "relations": {
+    "posts": {
+      "type": "hasMany",
+      "target": "Post",
+      "foreignKey": "authorId"
+    },
+    "profile": {
+      "type": "hasOne",
+      "target": "Profile",
+      "foreignKey": "userId"
+    }
+  },
+
+  "indexes": [
+    { "columns": ["email"], "unique": true },
+    { "columns": ["role", "createdAt"] },
+    { "columns": ["deletedAt"], "where": "deletedAt IS NULL" }
+  ],
+
+  "hooks": {
+    "beforeInsert": { "ref": "users.hashPassword" },
+    "beforeUpdate": { "ref": "users.updateTimestamp" }
+  }
+}

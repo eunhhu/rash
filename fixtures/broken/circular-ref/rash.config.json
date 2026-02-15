@@ -1,0 +1,19 @@
+{
+  "$schema": "https://rash.dev/schemas/config.json",
+  "version": "1.0.0",
+  "name": "broken-circular-ref",
+  "description": "Two schemas with circular references",
+
+  "target": {
+    "language": "typescript",
+    "framework": "express",
+    "runtime": "bun"
+  },
+
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "protocol": "http",
+    "basePath": "/api"
+  }
+}

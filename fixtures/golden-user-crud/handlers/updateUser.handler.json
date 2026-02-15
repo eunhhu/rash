@@ -1,0 +1,46 @@
+{
+  "name": "users.updateUser",
+  "description": "Update a user by ID",
+  "async": true,
+  "body": [
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "userId",
+      "value": { "type": "CtxGet", "tier": 1, "path": "params.id" }
+    },
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "data",
+      "value": { "type": "CtxGet", "tier": 1, "path": "body" }
+    },
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "user",
+      "value": {
+        "type": "AwaitExpr",
+        "tier": 1,
+        "expr": {
+          "type": "DbMutate",
+          "tier": 1,
+          "model": "User",
+          "operation": "update",
+          "data": { "type": "Identifier", "tier": 0, "name": "data" },
+          "where": { "id": { "type": "Identifier", "tier": 0, "name": "userId" } }
+        }
+      }
+    },
+    {
+      "type": "ReturnStatement",
+      "tier": 0,
+      "value": {
+        "type": "HttpRespond",
+        "tier": 1,
+        "status": 200,
+        "body": { "type": "Identifier", "tier": 0, "name": "user" }
+      }
+    }
+  ]
+}

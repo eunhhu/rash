@@ -1,0 +1,16 @@
+{
+  "$schema": "https://rash.dev/schemas/schema.json",
+  "name": "User",
+  "description": "User schema (duplicate definition)",
+
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "username": { "type": "string" },
+        "email": { "type": "string" }
+      }
+    }
+  }
+}

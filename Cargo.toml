@@ -1,0 +1,53 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rash-spec",
+    "crates/rash-ir",
+    "crates/rash-valid",
+    "crates/rash-codegen",
+    "crates/rash-runtime",
+    "crates/rash-openapi",
+    "rash-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.75"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Utilities
+semver = { version = "1", features = ["serde"] }
+indexmap = { version = "2", features = ["serde"] }
+walkdir = "2"
+chrono = { version = "0.4", features = ["serde"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+colored = "2"
+
+# JSON Schema
+schemars = "0.8"
+jsonschema = "0.28"
+
+# Internal crates
+rash-spec = { path = "crates/rash-spec" }
+rash-ir = { path = "crates/rash-ir" }
+rash-valid = { path = "crates/rash-valid" }
+rash-codegen = { path = "crates/rash-codegen" }
+rash-runtime = { path = "crates/rash-runtime" }
+rash-openapi = { path = "crates/rash-openapi" }
+
+# Dev dependencies
+pretty_assertions = "1"
+tempfile = "3"
+insta = { version = "1", features = ["json"] }

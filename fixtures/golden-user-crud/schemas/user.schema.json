@@ -1,0 +1,84 @@
+{
+  "$schema": "https://rash.dev/schemas/schema.json",
+  "name": "User",
+  "description": "User DTOs",
+
+  "definitions": {
+    "CreateUserBody": {
+      "type": "object",
+      "required": ["email", "password", "name"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 255,
+          "description": "Email address"
+        },
+        "password": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128,
+          "description": "Password"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "User name"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user", "moderator"],
+          "default": "user",
+          "description": "User role"
+        }
+      }
+    },
+
+    "UserResponse": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user", "moderator"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "UserListResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/UserResponse" }
+        },
+        "total": { "type": "integer" },
+        "page": { "type": "integer" },
+        "limit": { "type": "integer" }
+      }
+    },
+
+    "ListUsersQuery": {
+      "type": "object",
+      "properties": {
+        "page": { "type": "integer", "minimum": 1, "default": 1 },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+        "sort": { "type": "string", "enum": ["createdAt", "name", "email"] },
+        "order": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
+        "search": { "type": "string" }
+      }
+    },
+
+    "ErrorResponse": {
+      "type": "object",
+      "required": ["message", "code"],
+      "properties": {
+        "message": { "type": "string" },
+        "code": { "type": "string" },
+        "details": { "type": "object" }
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://rash.dev/schemas/middleware.json",
+  "name": "cors",
+  "description": "CORS middleware",
+  "type": "request",
+
+  "config": {
+    "type": "object",
+    "properties": {
+      "origin": {
+        "type": "string",
+        "default": "*",
+        "description": "Allowed origins"
+      },
+      "methods": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "description": "Allowed HTTP methods"
+      },
+      "headers": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": ["Content-Type", "Authorization"],
+        "description": "Allowed headers"
+      }
+    }
+  },
+
+  "handler": { "ref": "cors.handleCors" },
+
+  "provides": {},
+
+  "errors": {}
+}

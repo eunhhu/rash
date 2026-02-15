@@ -1,0 +1,47 @@
+{
+  "$schema": "https://rash.dev/schemas/middleware.json",
+  "name": "auth",
+  "description": "JWT authentication middleware",
+  "type": "request",
+
+  "config": {
+    "type": "object",
+    "properties": {
+      "roles": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Allowed roles. Empty means authentication only."
+      },
+      "optional": {
+        "type": "boolean",
+        "default": false,
+        "description": "If true, passes even without token (extracts info only)"
+      }
+    }
+  },
+
+  "handler": { "ref": "auth.verifyToken" },
+
+  "provides": {
+    "user": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "description": "Authenticated user info. Accessible via ctx.user in subsequent handlers."
+    }
+  },
+
+  "errors": {
+    "UNAUTHORIZED": {
+      "status": 401,
+      "message": "Invalid token"
+    },
+    "FORBIDDEN": {
+      "status": 403,
+      "message": "Insufficient permissions"
+    }
+  }
+}

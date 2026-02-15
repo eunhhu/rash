@@ -1,0 +1,17 @@
+{
+  "$schema": "https://rash.dev/schemas/route.json",
+  "description": "Route missing required path field",
+
+  "methods": {
+    "GET": {
+      "operationId": "badEndpoint",
+      "summary": "This route has no path",
+      "handler": { "ref": "bad.handler" },
+      "response": {
+        "200": {
+          "description": "OK"
+        }
+      }
+    }
+  }
+}

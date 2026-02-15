@@ -1,0 +1,23 @@
+[package]
+name = "rash-spec"
+description = "Rash spec parsing, serialization, validation, and migration"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+semver = { workspace = true }
+indexmap = { workspace = true }
+walkdir = { workspace = true }
+chrono = { workspace = true }
+schemars = { workspace = true }
+jsonschema = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+insta = { workspace = true }

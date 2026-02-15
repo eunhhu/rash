@@ -1,0 +1,39 @@
+{
+  "name": "users.createUser",
+  "description": "Create a new user",
+  "async": true,
+  "body": [
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "data",
+      "value": { "type": "CtxGet", "tier": 1, "path": "body" }
+    },
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "user",
+      "value": {
+        "type": "AwaitExpr",
+        "tier": 1,
+        "expr": {
+          "type": "DbMutate",
+          "tier": 1,
+          "model": "User",
+          "operation": "create",
+          "data": { "type": "Identifier", "tier": 0, "name": "data" }
+        }
+      }
+    },
+    {
+      "type": "ReturnStatement",
+      "tier": 0,
+      "value": {
+        "type": "HttpRespond",
+        "tier": 1,
+        "status": 201,
+        "body": { "type": "Identifier", "tier": 0, "name": "user" }
+      }
+    }
+  ]
+}

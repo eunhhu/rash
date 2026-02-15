@@ -1,0 +1,84 @@
+{
+  "$schema": "https://rash.dev/schemas/route.json",
+  "path": "/v1/users/:id",
+  "description": "Single user operations",
+
+  "params": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User UUID"
+    }
+  },
+
+  "methods": {
+    "GET": {
+      "operationId": "getUser",
+      "summary": "Get user by ID",
+      "handler": { "ref": "users.getUser" },
+      "middleware": [
+        { "ref": "auth", "config": { "roles": ["admin", "user"] } }
+      ],
+      "response": {
+        "200": {
+          "description": "Success",
+          "schema": { "ref": "UserResponse" }
+        },
+        "404": {
+          "description": "User not found",
+          "schema": { "ref": "ErrorResponse" }
+        }
+      }
+    },
+
+    "PUT": {
+      "operationId": "updateUser",
+      "summary": "Update user by ID",
+      "handler": { "ref": "users.updateUser" },
+      "middleware": [
+        { "ref": "auth", "config": { "roles": ["admin"] } },
+        { "ref": "validate", "config": { "schema": "CreateUserBody" } }
+      ],
+      "request": {
+        "body": {
+          "ref": "CreateUserBody",
+          "contentType": "application/json"
+        }
+      },
+      "response": {
+        "200": {
+          "description": "Updated",
+          "schema": { "ref": "UserResponse" }
+        },
+        "404": {
+          "description": "User not found",
+          "schema": { "ref": "ErrorResponse" }
+        }
+      }
+    },
+
+    "DELETE": {
+      "operationId": "deleteUser",
+      "summary": "Delete user by ID",
+      "handler": { "ref": "users.deleteUser" },
+      "middleware": [
+        { "ref": "auth", "config": { "roles": ["admin"] } }
+      ],
+      "response": {
+        "204": {
+          "description": "Deleted"
+        },
+        "404": {
+          "description": "User not found",
+          "schema": { "ref": "ErrorResponse" }
+        }
+      }
+    }
+  },
+
+  "tags": ["users"],
+  "meta": {
+    "createdAt": "2026-01-15T00:00:00Z",
+    "updatedAt": "2026-01-20T00:00:00Z"
+  }
+}

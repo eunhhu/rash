@@ -1,0 +1,10 @@
+[package]
+name = "rash-openapi"
+description = "Rash OpenAPI import/export (stub for Phase 5)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+rash-spec = { workspace = true }

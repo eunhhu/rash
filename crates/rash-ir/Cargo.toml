@@ -1,0 +1,18 @@
+[package]
+name = "rash-ir"
+description = "Rash intermediate representation and Spec-to-IR conversion"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+rash-spec = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+indexmap = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta = { workspace = true }

@@ -1,0 +1,32 @@
+{
+  "name": "auth.verifyToken",
+  "description": "Verify JWT token middleware handler",
+  "async": true,
+  "body": [
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "token",
+      "value": { "type": "CtxGet", "tier": 1, "path": "headers.authorization" }
+    },
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "payload",
+      "value": {
+        "type": "AwaitExpr",
+        "tier": 1,
+        "expr": {
+          "type": "VerifyToken",
+          "tier": 1,
+          "token": { "type": "Identifier", "tier": 0, "name": "token" }
+        }
+      }
+    },
+    {
+      "type": "ReturnStatement",
+      "tier": 0,
+      "value": { "type": "Identifier", "tier": 0, "name": "payload" }
+    }
+  ]
+}

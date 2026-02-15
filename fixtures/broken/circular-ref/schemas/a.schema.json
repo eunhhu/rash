@@ -1,0 +1,16 @@
+{
+  "$schema": "https://rash.dev/schemas/schema.json",
+  "name": "A",
+  "description": "Schema A referencing B",
+
+  "definitions": {
+    "TypeA": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "name": { "type": "string" },
+        "relatedB": { "$ref": "b.schema#TypeB" }
+      }
+    }
+  }
+}

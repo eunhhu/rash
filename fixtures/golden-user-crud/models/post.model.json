@@ -1,0 +1,17 @@
+{
+  "name": "Post",
+  "tableName": "posts",
+  "columns": {
+    "id": { "type": "uuid", "primaryKey": true, "default": "gen_random_uuid()" },
+    "title": { "type": "varchar(255)" },
+    "content": { "type": "text", "nullable": true },
+    "authorId": { "type": "uuid", "index": true }
+  },
+  "relations": {
+    "author": {
+      "type": "belongsTo",
+      "target": "User",
+      "foreignKey": "authorId"
+    }
+  }
+}

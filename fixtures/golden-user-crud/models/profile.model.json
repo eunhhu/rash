@@ -1,0 +1,17 @@
+{
+  "name": "Profile",
+  "tableName": "profiles",
+  "columns": {
+    "id": { "type": "uuid", "primaryKey": true, "default": "gen_random_uuid()" },
+    "bio": { "type": "text", "nullable": true },
+    "avatarUrl": { "type": "varchar(512)", "nullable": true },
+    "userId": { "type": "uuid", "unique": true }
+  },
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "target": "User",
+      "foreignKey": "userId"
+    }
+  }
+}

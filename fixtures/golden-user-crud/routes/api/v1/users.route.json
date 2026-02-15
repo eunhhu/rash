@@ -1,0 +1,63 @@
+{
+  "$schema": "https://rash.dev/schemas/route.json",
+  "path": "/v1/users",
+  "description": "User management API",
+
+  "methods": {
+    "GET": {
+      "operationId": "listUsers",
+      "summary": "List users",
+      "handler": { "ref": "users.listUsers" },
+      "middleware": [
+        { "ref": "auth", "config": { "roles": ["admin", "user"] } }
+      ],
+      "request": {
+        "query": {
+          "ref": "ListUsersQuery"
+        }
+      },
+      "response": {
+        "200": {
+          "description": "Success",
+          "schema": { "ref": "UserListResponse" }
+        },
+        "401": {
+          "description": "Unauthorized",
+          "schema": { "ref": "ErrorResponse" }
+        }
+      }
+    },
+
+    "POST": {
+      "operationId": "createUser",
+      "summary": "Create a new user",
+      "handler": { "ref": "users.createUser" },
+      "middleware": [
+        { "ref": "auth", "config": { "roles": ["admin"] } },
+        { "ref": "validate", "config": { "schema": "CreateUserBody" } }
+      ],
+      "request": {
+        "body": {
+          "ref": "CreateUserBody",
+          "contentType": "application/json"
+        }
+      },
+      "response": {
+        "201": {
+          "description": "Created",
+          "schema": { "ref": "UserResponse" }
+        },
+        "400": {
+          "description": "Validation failed",
+          "schema": { "ref": "ErrorResponse" }
+        }
+      }
+    }
+  },
+
+  "tags": ["users"],
+  "meta": {
+    "createdAt": "2026-01-15T00:00:00Z",
+    "updatedAt": "2026-01-20T00:00:00Z"
+  }
+}

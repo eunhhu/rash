@@ -1,0 +1,23 @@
+{
+  "name": "health.check",
+  "description": "Health check handler",
+  "async": false,
+  "body": [
+    {
+      "type": "ReturnStatement",
+      "tier": 0,
+      "value": {
+        "type": "HttpRespond",
+        "tier": 1,
+        "status": 200,
+        "body": {
+          "type": "ObjectExpr",
+          "tier": 0,
+          "properties": {
+            "status": { "type": "Literal", "tier": 0, "value": "ok" }
+          }
+        }
+      }
+    }
+  ]
+}

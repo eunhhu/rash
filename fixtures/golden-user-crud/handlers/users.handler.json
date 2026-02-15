@@ -1,0 +1,93 @@
+{
+  "$schema": "https://rash.dev/schemas/handler.json",
+  "name": "users.getUser",
+  "description": "Get user by ID",
+  "async": true,
+
+  "params": {
+    "ctx": {
+      "type": "RequestContext",
+      "description": "Request context (params, query, body, headers, etc.)"
+    }
+  },
+
+  "returnType": { "ref": "HttpResponse" },
+
+  "body": [
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "userId",
+      "value": {
+        "type": "CtxGet",
+        "tier": 1,
+        "path": "params.id"
+      }
+    },
+    {
+      "type": "LetStatement",
+      "tier": 0,
+      "name": "user",
+      "value": {
+        "type": "AwaitExpr",
+        "tier": 1,
+        "expr": {
+          "type": "DbQuery",
+          "tier": 1,
+          "model": "User",
+          "operation": "findUnique",
+          "where": {
+            "id": { "type": "Identifier", "tier": 0, "name": "userId" }
+          }
+        }
+      }
+    },
+    {
+      "type": "IfStatement",
+      "tier": 0,
+      "condition": {
+        "type": "BinaryExpr",
+        "tier": 0,
+        "operator": "==",
+        "left": { "type": "Identifier", "tier": 0, "name": "user" },
+        "right": { "type": "Literal", "tier": 0, "value": null }
+      },
+      "then": [
+        {
+          "type": "ReturnStatement",
+          "tier": 0,
+          "value": {
+            "type": "HttpRespond",
+            "tier": 1,
+            "status": 404,
+            "body": {
+              "type": "ObjectExpr",
+              "tier": 0,
+              "properties": {
+                "message": { "type": "Literal", "tier": 0, "value": "User not found" },
+                "code": { "type": "Literal", "tier": 0, "value": "NOT_FOUND" }
+              }
+            }
+          }
+        }
+      ],
+      "else": null
+    },
+    {
+      "type": "ReturnStatement",
+      "tier": 0,
+      "value": {
+        "type": "HttpRespond",
+        "tier": 1,
+        "status": 200,
+        "body": { "type": "Identifier", "tier": 0, "name": "user" }
+      }
+    }
+  ],
+
+  "meta": {
+    "maxTier": 1,
+    "languages": ["typescript", "rust", "python", "go"],
+    "bridges": []
+  }
+}
