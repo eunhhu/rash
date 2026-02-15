@@ -464,6 +464,45 @@ Rash 스펙에서 OpenAPI 3.1 문서를 자동 생성한다.
 
 핸들러 본문은 빈 상태(스텁)로 생성되며, 사용자가 GUI에서 직접 채운다.
 
+## Incremental 의존성 그래프
+
+점진적 코드 생성의 정확도를 위해 `SpecDependencyGraph`를 먼저 구축한다.
+
+### 그래프 노드/엣지
+
+- 노드: `route`, `schema`, `model`, `middleware`, `handler`, `generated-file`
+- 엣지: `A -> B` (A가 변경되면 B를 재생성해야 함)
+
+예시 엣지:
+- `schema:UserResponse -> handler:users.getUser`
+- `handler:users.getUser -> generated-file:src/handlers/users.ts`
+- `middleware:auth -> route:/v1/users`
+
+### 변경 영향 계산 규칙
+
+1. 변경된 스펙을 시작점으로 그래프 탐색(BFS/DFS)
+2. `generated-file` 노드까지 도달한 모든 경로를 수집
+3. 중복 파일을 제거하고 안정적인 순서(topological order)로 정렬
+4. 결과를 `FileChangePlan`으로 반환
+
+```rust
+pub struct SpecDependencyGraph {
+    // key: canonical spec id, value: dependents
+    edges: HashMap<NodeId, HashSet<NodeId>>,
+}
+
+pub struct FileChangePlan {
+    pub affected_specs: Vec<NodeId>,
+    pub affected_files: Vec<PathBuf>,
+    pub requires_full_regen: bool,
+}
+```
+
+`requires_full_regen = true` 조건:
+- 타겟 언어/프레임워크 변경
+- 전역 설정(`rash.config.json.codegen`, 글로벌 middleware) 변경
+- 그래프 무결성 실패(순환/누락)
+
 ## 점진적 코드 생성 (Incremental Codegen)
 
 전체를 매번 재생성하지 않고, 변경된 부분만 재생성한다.

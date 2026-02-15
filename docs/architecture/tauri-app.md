@@ -535,6 +535,56 @@ Rust 백엔드에서 프론트엔드로 비동기 이벤트를 전송하는 경�
 | `hmu:result` | Rust → JS | HMU 적용 결과 |
 | `validation:error` | Rust → JS | 실시간 유효성 검사 결과 |
 
+### 이벤트 Payload 표준 스키마
+
+Rust와 SolidJS가 동일 계약으로 통신하도록 공통 envelope를 사용한다.
+
+```typescript
+export interface AppEventEnvelope<T> {
+  eventId: string;          // uuid
+  eventType: string;        // server:log, hmu:result ...
+  timestamp: string;        // ISO8601
+  projectId?: string;
+  payload: T;
+}
+```
+
+대표 payload:
+
+```typescript
+export interface ServerLogPayload {
+  level: "trace" | "debug" | "info" | "warn" | "error";
+  source: "stdout" | "stderr" | "runtime";
+  message: string;
+}
+
+export interface HmuResultPayload {
+  status: "success" | "failed";
+  applied: string[];
+  failed: string[];
+  rolledBack?: boolean;
+  requiresRestart: boolean;
+}
+
+export interface ValidationErrorPayload {
+  code: string;
+  file: string;
+  path: string; // JSONPath
+  message: string;
+  suggestion?: string;
+}
+```
+
+운영 규칙:
+- 새로운 이벤트 추가 시 `ipc/types.ts`에 타입을 먼저 추가한 뒤 Rust emit을 연결한다.
+- `eventType` 문자열과 payload 타입 이름은 1:1로 매핑한다.
+- `validation:error`는 `spec-format`의 오류 포맷(`code`, `file`, `path`)을 그대로 재사용한다.
+
+### Golden E2E 연동
+
+- `TestRunner`는 `golden-user-crud` 샘플 프로젝트를 바로 실행할 수 있는 프리셋을 제공한다.
+- CI용 스모크 테스트에서는 동일 프리셋을 사용해 UI/IPC/Runtime 경로를 함께 검증한다.
+
 ### 이벤트 발행 (Rust)
 
 ```rust
