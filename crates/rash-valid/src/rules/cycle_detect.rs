@@ -104,10 +104,6 @@ fn collect_refs(value: &serde_json::Value, refs: &mut Vec<String>) {
                     refs.push(name.to_string());
                 }
             }
-            // Also check "ref" field (rash format)
-            if let Some(serde_json::Value::String(r)) = map.get("ref") {
-                refs.push(r.to_string());
-            }
             for v in map.values() {
                 collect_refs(v, refs);
             }

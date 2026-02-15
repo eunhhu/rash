@@ -18,3 +18,6 @@ clap = { workspace = true }
 colored = { workspace = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

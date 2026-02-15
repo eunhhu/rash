@@ -65,10 +65,11 @@ impl SpecIndex {
         file: &str,
         path: &str,
     ) -> Option<ErrorEntry> {
-        let canonical = canonicalize(name);
+        let canonical_any = canonicalize_any(name);
+        let canonical_kind = canonicalize_for_kind(name, kind);
 
         let entry = SymbolEntry {
-            canonical_key: canonical.clone(),
+            canonical_key: canonical_kind.clone(),
             original_name: name.to_string(),
             kind,
             file: file.to_string(),
@@ -77,7 +78,7 @@ impl SpecIndex {
 
         // Check for duplicate within same kind
         let kind_map = self.by_kind.entry(kind).or_default();
-        if let Some(existing) = kind_map.get(&canonical) {
+        if let Some(existing) = kind_map.get(&canonical_kind) {
             let err = ErrorEntry::error(
                 E_DUPLICATE_SYMBOL,
                 format!(
@@ -92,26 +93,26 @@ impl SpecIndex {
                 name
             ));
             // Still register for tracking
-            self.symbols.entry(canonical).or_default().push(entry);
+            self.symbols.entry(canonical_any).or_default().push(entry);
             return Some(err);
         }
 
-        kind_map.insert(canonical.clone(), entry.clone());
-        self.symbols.entry(canonical).or_default().push(entry);
+        kind_map.insert(canonical_kind, entry.clone());
+        self.symbols.entry(canonical_any).or_default().push(entry);
         None
     }
 
     /// Look up a symbol by name and kind
     pub fn lookup(&self, name: &str, kind: SymbolKind) -> Option<&SymbolEntry> {
-        let canonical = canonicalize(name);
-        self.by_kind.get(&kind)?.get(&canonical)
+        let canonical_kind = canonicalize_for_kind(name, kind);
+        self.by_kind.get(&kind)?.get(&canonical_kind)
     }
 
     /// Look up a symbol by name across all kinds
     pub fn lookup_any(&self, name: &str) -> Vec<&SymbolEntry> {
-        let canonical = canonicalize(name);
+        let canonical_any = canonicalize_any(name);
         self.symbols
-            .get(&canonical)
+            .get(&canonical_any)
             .map(|entries| entries.iter().collect())
             .unwrap_or_default()
     }
@@ -192,9 +193,35 @@ pub fn build_index(project: &crate::loader::LoadedProject) -> (SpecIndex, Vec<Er
 }
 
 /// Normalize a name to its canonical form for comparison.
-/// Lowercases and trims whitespace.
-fn canonicalize(name: &str) -> String {
-    name.trim().to_lowercase()
+/// Route paths are not lowercased.
+fn canonicalize_for_kind(name: &str, kind: SymbolKind) -> String {
+    match kind {
+        SymbolKind::Route => canonicalize_route(name),
+        SymbolKind::Schema | SymbolKind::Handler | SymbolKind::Middleware | SymbolKind::Model => {
+            canonicalize_ident(name)
+        }
+    }
+}
+
+fn canonicalize_any(name: &str) -> String {
+    canonicalize_ident(name)
+}
+
+fn canonicalize_route(path: &str) -> String {
+    path.trim().to_string()
+}
+
+fn canonicalize_ident(name: &str) -> String {
+    let trimmed = name.trim().to_lowercase();
+    let mut out = String::with_capacity(trimmed.len());
+    for ch in trimmed.chars() {
+        match ch {
+            '.' => out.push(ch),
+            '-' | '_' | ' ' | '\t' | '\n' | '\r' => {}
+            _ => out.push(ch),
+        }
+    }
+    out
 }
 
 #[cfg(test)]
@@ -226,6 +253,9 @@ mod tests {
         // Lookup with different case should work
         assert!(index.lookup("userresponse", SymbolKind::Schema).is_some());
         assert!(index.lookup("USERRESPONSE", SymbolKind::Schema).is_some());
+
+        assert!(index.lookup("user_response", SymbolKind::Schema).is_some());
+        assert!(index.lookup("user-response", SymbolKind::Schema).is_some());
     }
 
     #[test]

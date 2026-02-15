@@ -1000,6 +1000,7 @@ dependencies = [
  "rash-spec",
  "rash-valid",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]

@@ -1,4 +1,5 @@
 use crate::index::{SpecIndex, SymbolEntry, SymbolKind};
+use crate::types::error::E_REF_EXTERNAL_UNSUPPORTED;
 use crate::types::error::{ErrorEntry, E_REF_AMBIGUOUS, E_REF_NOT_FOUND, E_REF_TYPE_MISMATCH};
 
 /// Context in which a reference appears, used to determine expected symbol kind
@@ -155,11 +156,8 @@ impl<'a> Resolver<'a> {
                 .with_suggestion("Use a more specific reference or rename conflicting definitions"))
             }
             ResolveResult::External { .. } => {
-                // External references are not resolved locally — this is not an error
-                // In a real implementation, we'd load the external file
-                // For now, treat as "not an error but not resolved"
                 Err(ErrorEntry::error(
-                    E_REF_NOT_FOUND,
+                    E_REF_EXTERNAL_UNSUPPORTED,
                     format!(
                         "External reference '{}' cannot be resolved locally",
                         ref_str
@@ -167,7 +165,9 @@ impl<'a> Resolver<'a> {
                     file,
                     path,
                 )
-                .with_suggestion("Ensure the referenced file exists in the project"))
+                .with_suggestion(
+                    "Phase 1 does not support external refs. Inline the definition or rename it into this project.",
+                ))
             }
         }
     }

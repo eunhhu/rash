@@ -8,6 +8,7 @@ pub const E_REF_NOT_FOUND: &str = "E_REF_NOT_FOUND";
 pub const E_REF_TYPE_MISMATCH: &str = "E_REF_TYPE_MISMATCH";
 pub const E_REF_CYCLE: &str = "E_REF_CYCLE";
 pub const E_REF_AMBIGUOUS: &str = "E_REF_AMBIGUOUS";
+pub const E_REF_EXTERNAL_UNSUPPORTED: &str = "E_REF_EXTERNAL_UNSUPPORTED";
 pub const E_DUPLICATE_SYMBOL: &str = "E_DUPLICATE_SYMBOL";
 pub const E_MISSING_FIELD: &str = "E_MISSING_FIELD";
 pub const E_INVALID_TYPE: &str = "E_INVALID_TYPE";

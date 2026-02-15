@@ -83,9 +83,13 @@ fn cmd_init(
     framework: &str,
     runtime: &str,
 ) -> Result<bool> {
-    let project_dir = dir
-        .map(|d| d.to_path_buf())
-        .unwrap_or_else(|| PathBuf::from(name));
+    let project_dir = match dir {
+        Some(d) => d.to_path_buf(),
+        None => {
+            validate_default_dir_name(name)?;
+            PathBuf::from(name)
+        }
+    };
 
     if project_dir.exists() {
         anyhow::bail!("Directory '{}' already exists", project_dir.display());
@@ -192,6 +196,32 @@ fn cmd_init(
     println!("  {} validate", "rash".dimmed());
 
     Ok(true)
+}
+
+fn validate_default_dir_name(name: &str) -> Result<()> {
+    if name.is_empty() {
+        anyhow::bail!("Project name must not be empty");
+    }
+
+    // Prevent common path traversal / accidental nested directory creation.
+    // Only apply this when name is used as the default directory.
+    if name.contains('/') || name.contains('\\') {
+        anyhow::bail!("Project name must not contain path separators");
+    }
+
+    let mut components = Path::new(name).components();
+    let Some(first) = components.next() else {
+        anyhow::bail!("Project name must not be empty");
+    };
+
+    if components.next().is_some() {
+        anyhow::bail!("Project name must be a single path component");
+    }
+
+    match first {
+        std::path::Component::Normal(_) => Ok(()),
+        _ => anyhow::bail!("Project name must be a normal directory name"),
+    }
 }
 
 fn cmd_validate(path: &Path) -> Result<bool> {
@@ -356,5 +386,47 @@ fn cmd_check(path: &Path) -> Result<bool> {
     } else {
         println!("{} No validation errors", "✓".green().bold());
         Ok(true)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn init_rejects_parent_dir_name() {
+        let result = cmd_init("..", None, "typescript", "express", "bun");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn init_creates_minimal_project() {
+        let tmp = TempDir::new().unwrap();
+        let project_dir = tmp.path().join("my-app");
+
+        cmd_init(
+            "my-app",
+            Some(project_dir.as_path()),
+            "typescript",
+            "express",
+            "bun",
+        )
+        .unwrap();
+
+        assert!(project_dir.join("rash.config.json").exists());
+        assert!(project_dir.join("routes/health.route.json").exists());
+        assert!(project_dir.join("handlers/health.handler.json").exists());
+    }
+
+    #[test]
+    fn validate_minimal_fixture_ok() {
+        let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .join("fixtures/minimal");
+
+        let ok = cmd_validate(&fixture_path).unwrap();
+        assert!(ok);
     }
 }
