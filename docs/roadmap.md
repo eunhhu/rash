@@ -20,6 +20,11 @@ Phase 6 ─── 테스트 + 디버깅
 Phase 7 ─── 마켓플레이스 + 생태계
 ```
 
+### 고급 기능 상세 설계 문서
+
+- 컴포넌트/상태/추상화 상세: `docs/architecture/advanced-features.md`
+- 적용 범위: Phase 2~5 (UserFunction/Component/State/Contract/다국어 Bridge 전략)
+
 ## Phase 0: 구현 선행 기능 (권장)
 
 핵심 구현을 시작하기 전에, 실패 비용을 줄이기 위한 선행 작업이다.
