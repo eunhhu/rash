@@ -2,6 +2,8 @@
 
 Rash는 Tauri 앱 내에서 child process로 서버를 직접 실행하고 관리한다. 코드 변경 시 HMU(Hot Module Update)로 실시간 갱신하며, 내장 테스트 러너로 API를 검증한다.
 
+> 문서 상태: **Current (MVP 런타임 핵심)** + **Target (Phase 6 테스트 러너/고급 운영)** 를 함께 포함한다.
+
 ## Child Process 관리
 
 ### 아키텍처
@@ -106,7 +108,23 @@ impl ProcessManager {
     pub async fn stop(&mut self) -> Result<()> {
         if let Some(mut process) = self.process.take() {
             // 우아한 종료 시도 (SIGTERM)
-            process.child.kill().await?;
+            #[cfg(unix)]
+            {
+                use nix::sys::signal::{kill, Signal};
+                use nix::unistd::Pid;
+                if let Some(pid) = process.child.id() {
+                    let _ = kill(Pid::from_raw(pid as i32), Signal::SIGTERM);
+                }
+            }
+
+            // 제한 시간 내 종료되지 않으면 강제 종료
+            if tokio::time::timeout(std::time::Duration::from_secs(3), process.child.wait())
+                .await
+                .is_err()
+            {
+                process.child.kill().await?;
+            }
+
             self.app_handle.emit("server:status", "stopped")?;
         }
         Ok(())
@@ -282,16 +300,17 @@ HMU는 프론트엔드의 HMR(Hot Module Replacement)에 대응하는 개념이�
 import { createHmuClient } from "@rash/hmu-client";
 
 const hmu = createHmuClient({
-  onUpdate(modules) {
+  async onUpdate(modules) {
     for (const mod of modules) {
-      // 모듈 캐시 무효화 + 재로드
-      delete require.cache[resolve(mod.path)];
-      require(mod.path);
+      // ESM 기준: 캐시 버스팅 import로 모듈 재로드
+      await import(`${mod.path}?hmu=${Date.now()}`);
     }
     // 라우트 재등록
-    reregisterRoutes();
+    await reregisterRoutes();
   },
 });
+
+// 참고: CJS 런타임을 별도 지원할 경우에만 require.cache 전략을 사용한다.
 ```
 
 **Python (FastAPI)**
