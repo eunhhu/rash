@@ -32,6 +32,7 @@ pub struct LoadedProject {
 
 /// Load and parse an entire Rash project directory.
 /// Accumulates errors instead of failing on the first one.
+#[allow(clippy::result_large_err)]
 pub fn load_project(project_dir: &Path) -> Result<(LoadedProject, ValidationReport), LoadError> {
     let mut report = ValidationReport::success();
 

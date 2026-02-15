@@ -101,6 +101,7 @@ impl<'a> Resolver<'a> {
     }
 
     /// Resolve a reference and convert to an ErrorEntry if failed.
+    #[allow(clippy::result_large_err)]
     pub fn resolve_or_error(
         &self,
         ref_str: &str,

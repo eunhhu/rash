@@ -137,7 +137,7 @@ mod tests {
         graph.add_edge(handler.clone(), route.clone());
         graph.add_edge(route.clone(), file2.clone());
 
-        let affected = graph.affected_nodes(&[schema.clone()]);
+        let affected = graph.affected_nodes(std::slice::from_ref(&schema));
 
         assert!(affected.contains(&schema));
         assert!(affected.contains(&handler));
@@ -156,7 +156,7 @@ mod tests {
         graph.add_edge(a.clone(), b.clone());
         graph.add_edge(b.clone(), a.clone());
 
-        let affected = graph.affected_nodes(&[a.clone()]);
+        let affected = graph.affected_nodes(std::slice::from_ref(&a));
         assert!(affected.contains(&a));
         assert!(affected.contains(&b));
         assert_eq!(affected.len(), 2);

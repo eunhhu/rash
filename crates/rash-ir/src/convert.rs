@@ -212,7 +212,7 @@ fn convert_handler(handler: &HandlerSpec) -> Result<HandlerIR, ConvertError> {
     let return_type = handler
         .return_type
         .as_ref()
-        .map(|tr| convert_type_ref(tr))
+        .map(convert_type_ref)
         .unwrap_or(TypeIR::Void);
 
     let mut max_tier = Tier::Universal;

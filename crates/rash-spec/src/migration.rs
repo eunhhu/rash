@@ -73,29 +73,25 @@ impl MigrationRunner {
         project_dir: &Path,
         current_version: &Version,
     ) -> Result<Version, MigrationError> {
-        // Collect the applicable steps in order
-        let applicable: Vec<&dyn MigrationStep> = self
-            .steps
-            .iter()
-            .filter(|s| &s.source_version() >= current_version)
-            .map(|s| s.as_ref())
-            .collect();
+        let mut applicable: Vec<&dyn MigrationStep> = Vec::new();
+        let mut cursor = current_version.clone();
+        loop {
+            let next = self
+                .steps
+                .iter()
+                .find(|s| s.source_version() == cursor)
+                .map(|s| s.as_ref());
 
-        if applicable.is_empty() {
-            // Already at (or past) the latest version — no-op
-            return Ok(current_version.clone());
+            let Some(step) = next else {
+                break;
+            };
+
+            cursor = step.target_version();
+            applicable.push(step);
         }
 
-        // Verify chain continuity
-        let mut expected = current_version.clone();
-        for step in &applicable {
-            if step.source_version() != expected {
-                return Err(MigrationError::NoPath {
-                    from: current_version.clone(),
-                    to: step.target_version(),
-                });
-            }
-            expected = step.target_version();
+        if applicable.is_empty() {
+            return Ok(current_version.clone());
         }
 
         let config_path = project_dir.join("rash.config.json");

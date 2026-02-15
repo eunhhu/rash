@@ -9,31 +9,37 @@ use crate::types::route::RouteSpec;
 use crate::types::schema::SchemaSpec;
 
 /// Parse a rash.config.json file
+#[allow(clippy::result_large_err)]
 pub fn parse_config(content: &str, file_path: &str) -> Result<RashConfig, ErrorEntry> {
     serde_json::from_str(content).map_err(|e| serde_error_to_entry(e, file_path))
 }
 
 /// Parse a *.route.json file
+#[allow(clippy::result_large_err)]
 pub fn parse_route(content: &str, file_path: &str) -> Result<RouteSpec, ErrorEntry> {
     serde_json::from_str(content).map_err(|e| serde_error_to_entry(e, file_path))
 }
 
 /// Parse a *.schema.json file
+#[allow(clippy::result_large_err)]
 pub fn parse_schema(content: &str, file_path: &str) -> Result<SchemaSpec, ErrorEntry> {
     serde_json::from_str(content).map_err(|e| serde_error_to_entry(e, file_path))
 }
 
 /// Parse a *.model.json file
+#[allow(clippy::result_large_err)]
 pub fn parse_model(content: &str, file_path: &str) -> Result<ModelSpec, ErrorEntry> {
     serde_json::from_str(content).map_err(|e| serde_error_to_entry(e, file_path))
 }
 
 /// Parse a *.middleware.json file
+#[allow(clippy::result_large_err)]
 pub fn parse_middleware(content: &str, file_path: &str) -> Result<MiddlewareSpec, ErrorEntry> {
     serde_json::from_str(content).map_err(|e| serde_error_to_entry(e, file_path))
 }
 
 /// Parse a *.handler.json file
+#[allow(clippy::result_large_err)]
 pub fn parse_handler(content: &str, file_path: &str) -> Result<HandlerSpec, ErrorEntry> {
     serde_json::from_str(content).map_err(|e| serde_error_to_entry(e, file_path))
 }
