@@ -10,6 +10,9 @@ use crate::rules;
 pub fn validate(project: &LoadedProject) -> ValidationReport {
     let mut report = ValidationReport::success();
 
+    // Check spec version first
+    rules::version_check::check(project, &mut report);
+
     // Build symbol index
     let (index, index_errors) = build_index(project);
     for err in index_errors {

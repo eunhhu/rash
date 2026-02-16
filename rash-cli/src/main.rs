@@ -44,6 +44,15 @@ enum Command {
         #[arg(default_value = ".")]
         path: PathBuf,
     },
+    /// Generate code from a Rash project
+    Codegen {
+        /// Project directory (defaults to current directory)
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Output directory (defaults to .rash/generated)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -59,6 +68,7 @@ fn main() -> ExitCode {
         } => cmd_init(&name, dir.as_deref(), &language, &framework, &runtime),
         Command::Validate { path } => cmd_validate(&path),
         Command::Check { path } => cmd_check(&path),
+        Command::Codegen { path, output } => cmd_codegen(&path, output.as_deref()),
     };
 
     match result {
@@ -389,6 +399,76 @@ fn cmd_check(path: &Path) -> Result<bool> {
     }
 }
 
+fn cmd_codegen(path: &Path, output: Option<&Path>) -> Result<bool> {
+    println!(
+        "{} {}",
+        "Generating code from".bold(),
+        path.canonicalize()
+            .unwrap_or_else(|_| path.to_path_buf())
+            .display()
+    );
+
+    // 1. Load & validate
+    let (project, load_report) = rash_spec::loader::load_project(path)
+        .with_context(|| format!("Failed to load project at '{}'", path.display()))?;
+
+    let validation_report = rash_valid::validator::validate(&project);
+    let error_count = load_report
+        .errors
+        .iter()
+        .chain(validation_report.errors.iter())
+        .filter(|e| e.severity == rash_spec::types::common::Severity::Error)
+        .count();
+
+    if error_count > 0 {
+        eprintln!(
+            "{} {} validation error(s) — fix them before generating code",
+            "✗".red().bold(),
+            error_count
+        );
+        return Ok(false);
+    }
+
+    // 2. Convert to IR
+    let ir = rash_ir::convert::convert_project(&project)
+        .with_context(|| "Failed to convert spec to IR")?;
+
+    // 3. Create code generator
+    let language = project.config.target.language;
+    let framework = project.config.target.framework;
+
+    let generator = rash_codegen::CodeGenerator::new(language, framework)
+        .map_err(|e| anyhow::anyhow!("Codegen error: {}", e))?;
+
+    // 4. Generate
+    let generated = generator
+        .generate(&ir)
+        .map_err(|e| anyhow::anyhow!("Generation failed: {}", e))?;
+
+    // 5. Write output
+    let output_dir = match output {
+        Some(d) => d.to_path_buf(),
+        None => path.join(".rash/generated"),
+    };
+
+    generated
+        .write_to_disk(&output_dir)
+        .with_context(|| format!("Failed to write to '{}'", output_dir.display()))?;
+
+    println!(
+        "{} Generated {} file(s) → {}",
+        "✓".green().bold(),
+        generated.file_count(),
+        output_dir.display()
+    );
+
+    for file_path in generated.files().keys() {
+        println!("  {} {}", "→".dimmed(), file_path);
+    }
+
+    Ok(true)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -428,5 +508,35 @@ mod tests {
 
         let ok = cmd_validate(&fixture_path).unwrap();
         assert!(ok);
+    }
+
+    #[test]
+    fn codegen_golden_fixture() {
+        let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .join("fixtures/golden-user-crud");
+
+        let tmp = TempDir::new().unwrap();
+        let ok = cmd_codegen(&fixture_path, Some(tmp.path())).unwrap();
+        assert!(ok);
+
+        assert!(tmp.path().join("src/index.ts").exists());
+        assert!(tmp.path().join("package.json").exists());
+        assert!(tmp.path().join("tsconfig.json").exists());
+    }
+
+    #[test]
+    fn codegen_minimal_fixture() {
+        let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .join("fixtures/minimal");
+
+        let tmp = TempDir::new().unwrap();
+        let ok = cmd_codegen(&fixture_path, Some(tmp.path())).unwrap();
+        assert!(ok);
+
+        assert!(tmp.path().join("src/index.ts").exists());
     }
 }

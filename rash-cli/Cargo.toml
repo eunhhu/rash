@@ -14,6 +14,7 @@ path = "src/main.rs"
 rash-spec = { workspace = true }
 rash-ir = { workspace = true }
 rash-valid = { workspace = true }
+rash-codegen = { workspace = true }
 clap = { workspace = true }
 colored = { workspace = true }
 anyhow = { workspace = true }

@@ -1,0 +1,27 @@
+[package]
+name = "rash-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { version = "1", features = ["full"] }
+
+# Internal crates
+rash-spec.workspace = true
+rash-ir.workspace = true
+rash-valid.workspace = true
+rash-codegen.workspace = true
+
+[lib]
+name = "rash_app"
+crate-type = ["staticlib", "cdylib", "rlib"]

@@ -1,0 +1,500 @@
+/* ============================================================
+   Layout components — TopBar, Sidebar, MainPanel, BottomPanel,
+   SplitPane, TabPanel
+   ============================================================ */
+
+/* --- TopBar ------------------------------------------------ */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--rash-topbar-height);
+  min-height: var(--rash-topbar-height);
+  padding: 0 12px;
+  background: var(--rash-bg-secondary);
+  border-bottom: 1px solid var(--rash-border);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.topbar-left .project-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--rash-text);
+}
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rash-text-secondary);
+  font-size: 12px;
+}
+
+.topbar-center .language-badge {
+  padding: 2px 8px;
+  border-radius: var(--rash-radius-sm);
+  background: var(--rash-surface);
+  color: var(--rash-accent);
+  font-weight: 500;
+}
+
+.topbar-center .framework-badge {
+  padding: 2px 8px;
+  border-radius: var(--rash-radius-sm);
+  background: var(--rash-surface);
+  color: var(--rash-text-secondary);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+/* --- Sidebar ----------------------------------------------- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--rash-sidebar-width);
+  min-width: 180px;
+  background: var(--rash-bg-secondary);
+  border-right: 1px solid var(--rash-border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+.sidebar-section {
+  border-bottom: 1px solid var(--rash-border);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rash-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.sidebar-section-header:hover {
+  color: var(--rash-text-secondary);
+}
+
+.sidebar-section-header .chevron {
+  display: inline-flex;
+  transition: transform 0.15s ease;
+  font-size: 10px;
+}
+
+.sidebar-section-header .chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.sidebar-section-body {
+  padding: 0 0 4px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 20px;
+  font-size: 13px;
+  color: var(--rash-text-secondary);
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.sidebar-item:hover {
+  background: var(--rash-surface);
+  color: var(--rash-text);
+}
+
+.sidebar-item.active {
+  background: var(--rash-surface);
+  color: var(--rash-accent);
+}
+
+.sidebar-item .item-icon {
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-item .item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-empty {
+  padding: 6px 20px;
+  font-size: 12px;
+  color: var(--rash-text-muted);
+  font-style: italic;
+}
+
+/* --- Main Panel -------------------------------------------- */
+
+.main-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  background: var(--rash-bg);
+}
+
+.main-panel-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--rash-text-muted);
+  font-size: 14px;
+}
+
+/* Tab bar */
+.tab-bar {
+  display: flex;
+  align-items: stretch;
+  height: var(--rash-tab-height);
+  min-height: var(--rash-tab-height);
+  background: var(--rash-bg-secondary);
+  border-bottom: 1px solid var(--rash-border);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.tab-bar::-webkit-scrollbar {
+  height: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--rash-text-muted);
+  border-right: 1px solid var(--rash-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.1s ease, background 0.1s ease;
+}
+
+.tab:hover {
+  color: var(--rash-text-secondary);
+  background: var(--rash-surface);
+}
+
+.tab.active {
+  color: var(--rash-text);
+  background: var(--rash-bg);
+  border-bottom: 2px solid var(--rash-accent);
+}
+
+.tab .tab-dirty {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rash-accent);
+  flex-shrink: 0;
+}
+
+.tab .tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--rash-radius-sm);
+  font-size: 11px;
+  color: var(--rash-text-muted);
+  opacity: 0;
+  transition: opacity 0.1s ease, background 0.1s ease;
+}
+
+.tab:hover .tab-close {
+  opacity: 1;
+}
+
+.tab .tab-close:hover {
+  background: var(--rash-surface-hover);
+  color: var(--rash-text);
+}
+
+/* Editor area */
+.editor-area {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* --- Bottom Panel ------------------------------------------ */
+
+.bottom-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--rash-bg-secondary);
+  border-top: 1px solid var(--rash-border);
+  overflow: hidden;
+  transition: height 0.2s ease;
+}
+
+.bottom-panel.closed {
+  height: 0 !important;
+  border-top: none;
+}
+
+.bottom-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 32px;
+  min-height: 32px;
+  border-bottom: 1px solid var(--rash-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rash-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.bottom-panel-toggle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.bottom-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+/* Validation entries inside bottom panel */
+.validation-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.validation-entry .severity {
+  padding: 1px 6px;
+  border-radius: var(--rash-radius-sm);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.validation-entry .severity.error {
+  background: color-mix(in srgb, var(--rash-error) 20%, transparent);
+  color: var(--rash-error);
+}
+
+.validation-entry .severity.warning {
+  background: color-mix(in srgb, var(--rash-warning) 20%, transparent);
+  color: var(--rash-warning);
+}
+
+.validation-entry .severity.info {
+  background: color-mix(in srgb, var(--rash-info) 20%, transparent);
+  color: var(--rash-info);
+}
+
+.validation-entry .entry-message {
+  color: var(--rash-text);
+}
+
+.validation-entry .entry-file {
+  color: var(--rash-text-muted);
+  font-family: var(--rash-font);
+}
+
+/* --- SplitPane --------------------------------------------- */
+
+.split-pane {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.split-pane.horizontal {
+  flex-direction: row;
+}
+
+.split-pane.vertical {
+  flex-direction: column;
+}
+
+.split-pane-panel {
+  overflow: hidden;
+}
+
+.split-pane-panel:last-child {
+  flex: 1;
+}
+
+.split-divider {
+  flex-shrink: 0;
+  background: var(--rash-border);
+  transition: background 0.15s ease;
+  z-index: 5;
+}
+
+.split-divider:hover,
+.split-divider.dragging {
+  background: var(--rash-accent);
+}
+
+.split-pane.horizontal > .split-divider {
+  width: 1px;
+  cursor: col-resize;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+
+.split-pane.vertical > .split-divider {
+  height: 1px;
+  cursor: row-resize;
+  padding: 1px 0;
+  margin: -1px 0;
+}
+
+/* --- Modal (used by common/Modal) --- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: modal-fade-in 0.15s ease;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: var(--rash-bg-secondary);
+  border: 1px solid var(--rash-border);
+  border-radius: var(--rash-radius);
+  min-width: 400px;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  animation: modal-slide-in 0.15s ease;
+}
+
+@keyframes modal-slide-in {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--rash-border);
+}
+
+.modal-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rash-text);
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--rash-border);
+}
+
+/* --- Form fields (used by common/Input, Select) --- */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rash-text-secondary);
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row > .form-field {
+  flex: 1;
+}
+
+.input-with-action {
+  display: flex;
+  gap: 6px;
+}
+
+.input-with-action input {
+  flex: 1;
+}

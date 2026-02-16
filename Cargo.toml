@@ -8,6 +8,7 @@ members = [
     "crates/rash-runtime",
     "crates/rash-openapi",
     "rash-cli",
+    "src-tauri",
 ]
 
 [workspace.package]

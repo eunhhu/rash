@@ -98,10 +98,12 @@ fn extract_refs_from_value(value: &serde_json::Value) -> Vec<String> {
 fn collect_refs(value: &serde_json::Value, refs: &mut Vec<String>) {
     match value {
         serde_json::Value::Object(map) => {
-            if let Some(serde_json::Value::String(r)) = map.get("$ref") {
-                // Extract definition name from "#/definitions/Name" format
-                if let Some(name) = r.strip_prefix("#/definitions/") {
-                    refs.push(name.to_string());
+            // Check both "$ref" (JSON Schema style) and "ref" (Rash spec style)
+            for key in &["$ref", "ref"] {
+                if let Some(serde_json::Value::String(r)) = map.get(*key) {
+                    if let Some(name) = extract_ref_target(r) {
+                        refs.push(name);
+                    }
                 }
             }
             for v in map.values() {
@@ -115,6 +117,33 @@ fn collect_refs(value: &serde_json::Value, refs: &mut Vec<String>) {
         }
         _ => {}
     }
+}
+
+/// Extract the target definition name from various ref formats:
+/// - `"#/definitions/Name"` → `"Name"`
+/// - `"other.schema#Name"` → `"Name"` (cross-file ref)
+/// - `"Name"` → `"Name"` (simple ref, only if it looks like a type name)
+fn extract_ref_target(r: &str) -> Option<String> {
+    // JSON Schema internal ref: #/definitions/Name
+    if let Some(name) = r.strip_prefix("#/definitions/") {
+        return Some(name.to_string());
+    }
+    // Cross-file ref: file.schema#DefinitionName
+    if let Some((_file, name)) = r.split_once('#') {
+        if !name.is_empty() {
+            return Some(name.to_string());
+        }
+    }
+    // Simple ref: a type-like name (starts with uppercase, no slashes or special chars)
+    // e.g., "UserResponse", "ErrorType"
+    if !r.is_empty()
+        && r.chars().next().is_some_and(|c| c.is_uppercase())
+        && !r.contains('/')
+        && !r.contains('.')
+    {
+        return Some(r.to_string());
+    }
+    None
 }
 
 #[cfg(test)]
@@ -138,6 +167,37 @@ mod tests {
         assert_eq!(refs.len(), 2);
         assert!(refs.contains(&"UserResponse".to_string()));
         assert!(refs.contains(&"ErrorResponse".to_string()));
+    }
+
+    #[test]
+    fn test_extract_ref_target_simple_name() {
+        // Simple ref: uppercase type-like names should be detected
+        assert_eq!(extract_ref_target("UserResponse"), Some("UserResponse".to_string()));
+        assert_eq!(extract_ref_target("ErrorType"), Some("ErrorType".to_string()));
+        // Lowercase names should NOT be treated as type refs
+        assert_eq!(extract_ref_target("somefield"), None);
+        // Already handled formats
+        assert_eq!(extract_ref_target("#/definitions/Foo"), Some("Foo".to_string()));
+        assert_eq!(extract_ref_target("other.schema#Bar"), Some("Bar".to_string()));
+    }
+
+    #[test]
+    fn test_extract_refs_simple_ref_in_schema() {
+        let value = serde_json::json!({
+            "type": "object",
+            "properties": {
+                "author": { "$ref": "Author" },
+                "tags": {
+                    "type": "array",
+                    "items": { "$ref": "Tag" }
+                }
+            }
+        });
+
+        let refs = extract_refs_from_value(&value);
+        assert_eq!(refs.len(), 2);
+        assert!(refs.contains(&"Author".to_string()));
+        assert!(refs.contains(&"Tag".to_string()));
     }
 
     #[test]
