@@ -15,12 +15,15 @@ export const TopBar: Component = () => {
 
       <div class="topbar-center">
         <Show when={project()}>
-          {(p) => (
-            <>
-              <span class="language-badge">{String((p().config as Record<string, unknown>)?.language ?? "")}</span>
-              <span class="framework-badge">{String((p().config as Record<string, unknown>)?.framework ?? "")}</span>
-            </>
-          )}
+          {(p) => {
+            const target = () => (p().config as Record<string, unknown>)?.target as Record<string, unknown> | undefined;
+            return (
+              <>
+                <span class="language-badge">{String(target()?.language ?? "")}</span>
+                <span class="framework-badge">{String(target()?.framework ?? "")}</span>
+              </>
+            );
+          }}
         </Show>
       </div>
 

@@ -7,13 +7,25 @@ import { BottomPanel } from "./components/layout/BottomPanel";
 import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
 
 const App: Component = () => {
-  const { project, showCreateDialog, setShowCreateDialog } = useProjectStore();
+  const { project, showCreateDialog, setShowCreateDialog, openProject } = useProjectStore();
+
+  const handleOpenProject = async () => {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const selected = await open({ directory: true, multiple: false });
+      if (selected && typeof selected === "string") {
+        await openProject(selected);
+      }
+    } catch {
+      // Dialog API unavailable or user cancelled
+    }
+  };
 
   return (
     <div class="app">
       <TopBar />
       <div class="app-body">
-        <Show when={project()} fallback={<WelcomeScreen onNew={() => setShowCreateDialog(true)} />}>
+        <Show when={project()} fallback={<WelcomeScreen onNew={() => setShowCreateDialog(true)} onOpen={handleOpenProject} />}>
           <Sidebar />
           <div class="app-main">
             <MainPanel />
@@ -28,7 +40,7 @@ const App: Component = () => {
   );
 };
 
-const WelcomeScreen: Component<{ onNew: () => void }> = (props) => {
+const WelcomeScreen: Component<{ onNew: () => void; onOpen: () => void }> = (props) => {
   return (
     <div class="welcome">
       <h1>Rash</h1>
@@ -37,7 +49,7 @@ const WelcomeScreen: Component<{ onNew: () => void }> = (props) => {
         <button class="btn btn-primary" onClick={props.onNew}>
           New Project
         </button>
-        <button class="btn btn-secondary" onClick={() => {/* open project */}}>
+        <button class="btn btn-secondary" onClick={props.onOpen}>
           Open Project
         </button>
       </div>

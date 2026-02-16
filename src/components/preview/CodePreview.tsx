@@ -1,14 +1,12 @@
-import { Component, createSignal, createEffect, onCleanup } from "solid-js";
+import { Component, For, createSignal, createEffect, onCleanup } from "solid-js";
 import { invoke } from "../../ipc/invoke";
 import type { Language, Framework } from "../../ipc/types";
 import { CodeViewer } from "../common/CodeViewer";
 import { LanguageSelector } from "./LanguageSelector";
 
 interface CodePreviewProps {
-  /** The spec data to preview (any spec type). */
-  specData: unknown;
-  /** The spec file path for context. */
-  specPath: string;
+  /** Reactive trigger — changing this value re-fetches the preview. */
+  specData?: unknown;
 }
 
 export const CodePreview: Component<CodePreviewProps> = (props) => {
@@ -18,6 +16,9 @@ export const CodePreview: Component<CodePreviewProps> = (props) => {
   const [loading, setLoading] = createSignal(false);
 
   let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const [selectedFile, setSelectedFile] = createSignal<string>("");
+  const [files, setFiles] = createSignal<Record<string, string>>({});
 
   createEffect(() => {
     // Track reactive dependencies
@@ -29,13 +30,17 @@ export const CodePreview: Component<CodePreviewProps> = (props) => {
     timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const result = await invoke<string>("preview_code", {
-          path: props.specPath,
-          language: _lang,
-          framework: _fw,
+        const result = await invoke<Record<string, string>>("preview_code", {
+          args: { language: _lang, framework: _fw },
         });
-        setCode(result);
+        setFiles(result);
+        const fileNames = Object.keys(result);
+        if (fileNames.length > 0 && !result[selectedFile()]) {
+          setSelectedFile(fileNames[0]);
+        }
+        setCode(result[selectedFile()] ?? "// No files generated");
       } catch (err) {
+        setFiles({});
         setCode(`// Preview error: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         setLoading(false);
@@ -54,6 +59,19 @@ export const CodePreview: Component<CodePreviewProps> = (props) => {
           onLanguageChange={setLanguage}
           onFrameworkChange={setFramework}
         />
+        <select
+          class="code-preview-file-select"
+          value={selectedFile()}
+          onChange={(e) => {
+            const f = e.currentTarget.value;
+            setSelectedFile(f);
+            setCode(files()[f] ?? "");
+          }}
+        >
+          <For each={Object.keys(files())}>
+            {(f) => <option value={f}>{f}</option>}
+          </For>
+        </select>
         {loading() && <span class="code-preview-loading">Generating...</span>}
       </div>
       <div class="code-preview-body">
@@ -80,6 +98,11 @@ export const CodePreview: Component<CodePreviewProps> = (props) => {
           font-size: 11px;
           color: var(--rash-text-muted);
           font-style: italic;
+        }
+        .code-preview-file-select {
+          font-size: 11px;
+          padding: 2px 6px;
+          max-width: 200px;
         }
         .code-preview-body {
           flex: 1;

@@ -33,6 +33,12 @@ pub fn run() {
             commands::codegen::validate_project,
             commands::codegen::preview_code,
             commands::codegen::generate_project,
+            commands::runtime::detect_runtimes,
+            commands::runtime::run_preflight,
+            commands::runtime::start_server,
+            commands::runtime::stop_server,
+            commands::runtime::restart_server,
+            commands::runtime::get_server_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

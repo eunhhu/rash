@@ -12,7 +12,7 @@ use crate::state::AppState;
 
 #[tauri::command]
 pub fn validate_project(state: State<'_, AppState>) -> Result<ValidationReport, AppError> {
-    let guard = state.project.lock().unwrap();
+    let guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
     let open = guard.as_ref().ok_or(AppError::NoProject)?;
     let report = rash_valid::validator::validate(&open.project);
     Ok(report)
@@ -30,7 +30,7 @@ pub fn preview_code(
     args: PreviewCodeArgs,
     state: State<'_, AppState>,
 ) -> Result<Value, AppError> {
-    let guard = state.project.lock().unwrap();
+    let guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
     let open = guard.as_ref().ok_or(AppError::NoProject)?;
 
     let ir = convert_project(&open.project)
@@ -55,7 +55,7 @@ pub fn generate_project(
     framework: Framework,
     state: State<'_, AppState>,
 ) -> Result<Value, AppError> {
-    let guard = state.project.lock().unwrap();
+    let guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
     let open = guard.as_ref().ok_or(AppError::NoProject)?;
 
     let ir = convert_project(&open.project)

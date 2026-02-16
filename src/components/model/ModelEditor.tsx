@@ -56,7 +56,7 @@ export const ModelEditor: Component<ModelEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_model", { path: props.filePath, model: draft() });
+      await invoke("write_model", { filePath: props.filePath, value: draft() });
       setDirty(false);
       props.onDirty?.(false);
     } finally {

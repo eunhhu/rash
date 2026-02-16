@@ -106,7 +106,7 @@ export const MiddlewareEditor: Component<MiddlewareEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_middleware", { path: props.filePath, middleware: draft() });
+      await invoke("write_middleware", { filePath: props.filePath, value: draft() });
       setDirty(false);
       props.onDirty?.(false);
     } finally {

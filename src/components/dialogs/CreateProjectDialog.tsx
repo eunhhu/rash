@@ -1,4 +1,4 @@
-import { Component, createEffect, createMemo, createSignal } from "solid-js";
+import { Component, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { Modal } from "../common/Modal";
 import { Input } from "../common/Input";
 import { Select } from "../common/Select";
@@ -73,6 +73,7 @@ export const CreateProjectDialog: Component<CreateProjectDialogProps> = (props) 
   const [framework, setFramework] = createSignal("");
   const [runtime, setRuntime] = createSignal("");
   const [creating, setCreating] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
 
   const frameworkOptions = createMemo(() => frameworksByLanguage[language()] ?? []);
   const runtimeOptions = createMemo(() => runtimesByLanguage[language()] ?? []);
@@ -106,6 +107,7 @@ export const CreateProjectDialog: Component<CreateProjectDialogProps> = (props) 
   const handleCreate = async () => {
     if (!canCreate() || creating()) return;
     setCreating(true);
+    setError(null);
     try {
       await createProject({
         name: name().trim(),
@@ -115,8 +117,8 @@ export const CreateProjectDialog: Component<CreateProjectDialogProps> = (props) 
         runtime: runtime(),
       });
       props.onClose();
-    } catch {
-      // TODO: surface error in dialog
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setCreating(false);
     }
@@ -170,6 +172,12 @@ export const CreateProjectDialog: Component<CreateProjectDialogProps> = (props) 
           />
         </div>
       </div>
+
+      <Show when={error()}>
+        <div style={{ padding: "0 16px", color: "var(--rash-error)", "font-size": "12px" }}>
+          {error()}
+        </div>
+      </Show>
 
       <div class="modal-footer">
         <Button variant="secondary" onClick={props.onClose}>

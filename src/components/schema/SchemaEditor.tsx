@@ -70,7 +70,7 @@ export const SchemaEditor: Component<SchemaEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_schema", { path: props.filePath, schema: draft() });
+      await invoke("write_schema", { filePath: props.filePath, value: draft() });
       setDirty(false);
       props.onDirty?.(false);
     } finally {

@@ -108,19 +108,20 @@ const TreeItem: Component<TreeItemProps> = (props) => {
 export const Sidebar: Component = () => {
   const { project } = useProjectStore();
 
-  const nodesByKind = (kind: string): TreeNode[] => {
+  const nodesBySection = (sectionId: string): TreeNode[] => {
     const tree = project();
     if (!tree) return [];
-    return tree.nodes.filter((n) => n.kind === kind);
+    const section = tree.nodes.find((n) => n.id === sectionId);
+    return section?.children ?? [];
   };
 
   return (
     <div class="sidebar">
-      <SidebarSection title="Routes" kind="route" nodes={nodesByKind("route")} />
-      <SidebarSection title="Schemas" kind="schema" nodes={nodesByKind("schema")} />
-      <SidebarSection title="Models" kind="model" nodes={nodesByKind("model")} />
-      <SidebarSection title="Middleware" kind="middleware" nodes={nodesByKind("middleware")} />
-      <SidebarSection title="Handlers" kind="handler" nodes={nodesByKind("handler")} />
+      <SidebarSection title="Routes" kind="route" nodes={nodesBySection("section:routes")} />
+      <SidebarSection title="Schemas" kind="schema" nodes={nodesBySection("section:schemas")} />
+      <SidebarSection title="Models" kind="model" nodes={nodesBySection("section:models")} />
+      <SidebarSection title="Middleware" kind="middleware" nodes={nodesBySection("section:middleware")} />
+      <SidebarSection title="Handlers" kind="handler" nodes={nodesBySection("section:handlers")} />
     </div>
   );
 };

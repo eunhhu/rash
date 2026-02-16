@@ -1,6 +1,112 @@
-import { Component, For, Show } from "solid-js";
-import { useEditorStore } from "../../stores/editorStore";
+import { Component, For, Show, Switch, Match, createSignal, createEffect } from "solid-js";
+import { useEditorStore, type EditorTab } from "../../stores/editorStore";
+import { invoke } from "../../ipc/invoke";
+import type { RouteSpec, SchemaSpec, ModelSpec, MiddlewareSpec, HandlerSpec } from "../../ipc/types";
+import { RouteEditor } from "../route/RouteEditor";
+import { SchemaEditor } from "../schema/SchemaEditor";
+import { ModelEditor } from "../model/ModelEditor";
+import { MiddlewareEditor } from "../middleware/MiddlewareEditor";
+import { HandlerEditor } from "../handler/HandlerEditor";
+import { SplitPane } from "./SplitPane";
+import { CodePreview } from "../preview/CodePreview";
 import "./layout.css";
+
+const READ_COMMANDS: Record<string, string> = {
+  route: "read_route",
+  schema: "read_schema",
+  model: "read_model",
+  middleware: "read_middleware",
+  handler: "read_handler",
+};
+
+interface EditorWrapperProps {
+  tab: EditorTab;
+}
+
+const EditorWrapper: Component<EditorWrapperProps> = (props) => {
+  const [data, setData] = createSignal<unknown>(null);
+  const [loading, setLoading] = createSignal(true);
+  const [error, setError] = createSignal<string | null>(null);
+  const { markDirty, markClean } = useEditorStore();
+
+  createEffect(() => {
+    const cmd = READ_COMMANDS[props.tab.kind];
+    if (!cmd) {
+      setError(`Unknown editor kind: ${props.tab.kind}`);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    invoke(cmd, { filePath: props.tab.filePath })
+      .then((result) => {
+        setData(result);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : String(err));
+        setLoading(false);
+      });
+  });
+
+  const handleDirty = (dirty: boolean) => {
+    if (dirty) markDirty(props.tab.id);
+    else markClean(props.tab.id);
+  };
+
+  return (
+    <Show when={!loading()} fallback={
+      <div class="editor-loading">Loading...</div>
+    }>
+      <Show when={!error()} fallback={
+        <div class="editor-error">Error: {error()}</div>
+      }>
+        <SplitPane direction="horizontal" initialSize={70}>
+          <Switch fallback={
+            <div class="editor-error">No editor for kind: {props.tab.kind}</div>
+          }>
+            <Match when={props.tab.kind === "route"}>
+              <RouteEditor
+                route={data() as RouteSpec}
+                filePath={props.tab.filePath}
+                onDirty={handleDirty}
+              />
+            </Match>
+            <Match when={props.tab.kind === "schema"}>
+              <SchemaEditor
+                schema={data() as SchemaSpec}
+                filePath={props.tab.filePath}
+                onDirty={handleDirty}
+              />
+            </Match>
+            <Match when={props.tab.kind === "model"}>
+              <ModelEditor
+                model={data() as ModelSpec}
+                filePath={props.tab.filePath}
+                onDirty={handleDirty}
+              />
+            </Match>
+            <Match when={props.tab.kind === "middleware"}>
+              <MiddlewareEditor
+                middleware={data() as MiddlewareSpec}
+                filePath={props.tab.filePath}
+                onDirty={handleDirty}
+              />
+            </Match>
+            <Match when={props.tab.kind === "handler"}>
+              <HandlerEditor
+                handler={data() as HandlerSpec}
+                filePath={props.tab.filePath}
+                onDirty={handleDirty}
+              />
+            </Match>
+          </Switch>
+          <CodePreview specData={data()} />
+        </SplitPane>
+      </Show>
+    </Show>
+  );
+};
 
 export const MainPanel: Component = () => {
   const { tabs, activeTabId, setActiveTab, closeTab } = useEditorStore();
@@ -46,27 +152,10 @@ export const MainPanel: Component = () => {
       >
         {(tab) => (
           <div class="editor-area">
-            <EditorPlaceholder kind={tab().kind} name={tab().label} />
+            <EditorWrapper tab={tab()} />
           </div>
         )}
       </Show>
-    </div>
-  );
-};
-
-/**
- * Placeholder that renders based on tab kind.
- * Each kind will be replaced by a dedicated editor component later.
- */
-const EditorPlaceholder: Component<{ kind: string; name: string }> = (props) => {
-  return (
-    <div style={{ color: "var(--rash-text-secondary)" }}>
-      <h3 style={{ "margin-bottom": "8px", color: "var(--rash-text)" }}>
-        {props.name}
-      </h3>
-      <p>
-        Editor for <strong>{props.kind}</strong> will be rendered here.
-      </p>
     </div>
   );
 };

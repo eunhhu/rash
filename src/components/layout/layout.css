@@ -249,8 +249,22 @@
 /* Editor area */
 .editor-area {
   flex: 1;
-  overflow: auto;
-  padding: 16px;
+  overflow: hidden;
+  display: flex;
+}
+
+.editor-loading,
+.editor-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 13px;
+  color: var(--rash-text-muted);
+}
+
+.editor-error {
+  color: var(--rash-error);
 }
 
 /* --- Bottom Panel ------------------------------------------ */

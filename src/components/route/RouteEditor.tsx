@@ -73,7 +73,7 @@ export const RouteEditor: Component<RouteEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_route", { path: props.filePath, route: draft() });
+      await invoke("write_route", { filePath: props.filePath, value: draft() });
       setDirty(false);
       props.onDirty?.(false);
     } finally {

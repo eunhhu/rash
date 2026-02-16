@@ -85,7 +85,7 @@ pub fn open_project(
 
     let tree = build_project_tree(&loaded, &project_dir);
 
-    let mut guard = state.project.lock().unwrap();
+    let mut guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
     *guard = Some(OpenProject {
         root: project_dir,
         project: loaded,
@@ -97,14 +97,14 @@ pub fn open_project(
 
 #[tauri::command]
 pub fn close_project(state: State<'_, AppState>) -> Result<(), AppError> {
-    let mut guard = state.project.lock().unwrap();
+    let mut guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
     *guard = None;
     Ok(())
 }
 
 #[tauri::command]
 pub fn get_project_tree(state: State<'_, AppState>) -> Result<ProjectTree, AppError> {
-    let guard = state.project.lock().unwrap();
+    let guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
     let open = guard.as_ref().ok_or(AppError::NoProject)?;
     Ok(build_project_tree(&open.project, &open.root))
 }

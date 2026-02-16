@@ -23,6 +23,9 @@ pub enum AppError {
 
     #[error("IO error: {0}")]
     IoError(String),
+
+    #[error("Runtime error: {0}")]
+    RuntimeError(String),
 }
 
 impl From<std::io::Error> for AppError {

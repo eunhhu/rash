@@ -1,6 +1,6 @@
 import { Component, Show, createSignal, createEffect } from "solid-js";
 import { invoke } from "../../ipc/invoke";
-import type { HandlerSpec, AstNode, Tier, Language, Framework } from "../../ipc/types";
+import type { HandlerSpec, AstNode, Tier, Language } from "../../ipc/types";
 import { createNode } from "../../utils/ast";
 import { NodePalette } from "./NodePalette";
 import { AstNodeView } from "./AstNodeView";
@@ -27,19 +27,24 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
     setSelectedNodeId(null);
   });
 
-  // Debounced preview
+  // Debounced preview — calls project-wide codegen and picks a relevant file
   let previewTimer: ReturnType<typeof setTimeout> | undefined;
   createEffect(() => {
     // Access body reactively
     const _body = draft().body;
+    const lang = previewLang();
     clearTimeout(previewTimer);
     previewTimer = setTimeout(async () => {
       try {
-        const code = await invoke<string>("preview_code", {
-          handler: draft(),
-          language: previewLang(),
+        const fileMap = await invoke<Record<string, string>>("preview_code", {
+          args: { language: lang, framework: "express" },
         });
-        setPreviewCode(code);
+        // Find a file matching this handler's name, or show first file
+        const handlerName = draft().name.toLowerCase();
+        const match = Object.entries(fileMap).find(([k]) =>
+          k.toLowerCase().includes(handlerName)
+        );
+        setPreviewCode(match ? match[1] : Object.values(fileMap)[0] ?? "// No output");
       } catch {
         setPreviewCode("// Preview unavailable");
       }
@@ -80,7 +85,7 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_handler", { path: props.filePath, handler: draft() });
+      await invoke("write_handler", { filePath: props.filePath, value: draft() });
       setDirty(false);
       props.onDirty?.(false);
     } finally {
