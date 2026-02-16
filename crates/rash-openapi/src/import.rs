@@ -30,9 +30,17 @@ pub struct ImportResult {
 // Public API
 // ---------------------------------------------------------------------------
 
-/// Import an OpenAPI 3.x JSON document and convert it to Rash spec types.
+/// Import an OpenAPI 3.x document (JSON or YAML) and convert it to Rash spec types.
 pub fn import_openapi(openapi_json: &str) -> Result<ImportResult, OpenApiError> {
-    let doc: Value = serde_json::from_str(openapi_json)?;
+    // Try JSON first, fall back to YAML
+    let doc: Value = match serde_json::from_str(openapi_json) {
+        Ok(v) => v,
+        Err(json_err) => serde_yaml::from_str::<Value>(openapi_json).map_err(|yaml_err| {
+            OpenApiError::ParseError(format!(
+                "failed to parse as JSON ({json_err}) or YAML ({yaml_err})"
+            ))
+        })?,
+    };
 
     // Validate version
     let version = doc
@@ -49,7 +57,11 @@ pub fn import_openapi(openapi_json: &str) -> Result<ImportResult, OpenApiError> 
     let config = build_config(&doc, &mut warnings);
     let schemas = build_schemas(&doc, &mut warnings);
     let middleware = build_middleware(&doc, &mut warnings);
-    let (routes, handlers) = build_routes_and_handlers(&doc, &middleware, &mut warnings);
+    let (routes, handlers, extra_schemas) = build_routes_and_handlers(&doc, &middleware, &mut warnings);
+
+    // Merge synthetic schemas into the main list
+    let mut schemas = schemas;
+    schemas.extend(extra_schemas);
 
     Ok(ImportResult {
         config,
@@ -419,14 +431,15 @@ fn build_routes_and_handlers(
     doc: &Value,
     middleware_list: &[MiddlewareSpec],
     warnings: &mut Vec<String>,
-) -> (Vec<RouteSpec>, Vec<HandlerSpec>) {
+) -> (Vec<RouteSpec>, Vec<HandlerSpec>, Vec<SchemaSpec>) {
     let paths = match doc.get("paths").and_then(|p| p.as_object()) {
         Some(p) => p,
-        None => return (Vec::new(), Vec::new()),
+        None => return (Vec::new(), Vec::new(), Vec::new()),
     };
 
     let mut routes = Vec::new();
     let mut handlers = Vec::new();
+    let mut synthetic_schemas: IndexMap<String, IndexMap<String, Value>> = IndexMap::new();
 
     for (path, path_item) in paths {
         let path_obj = match path_item.as_object() {
@@ -552,7 +565,7 @@ fn build_routes_and_handlers(
                             content_type: Some("application/json".to_string()),
                         }
                     } else {
-                        // Inline schema – create a synthetic name
+                        // Inline schema – create synthetic name and materialize
                         let synthetic_name = format!(
                             "{}Body",
                             operation_id.as_deref().unwrap_or("Unknown")
@@ -560,6 +573,10 @@ fn build_routes_and_handlers(
                         warnings.push(format!(
                             "inline request body schema at {path} {method_str} mapped to '{synthetic_name}'"
                         ));
+                        synthetic_schemas
+                            .entry("Synthetic".to_string())
+                            .or_default()
+                            .insert(synthetic_name.clone(), schema.clone());
                         RequestBodySpec {
                             reference: synthetic_name,
                             content_type: Some("application/json".to_string()),
@@ -567,12 +584,25 @@ fn build_routes_and_handlers(
                     }
                 });
 
-            // Query ref
+            // Query ref — also materialize synthetic schema
             let query_ref = if !query_properties.is_empty() {
                 let query_schema_name = format!(
                     "{}Query",
                     operation_id.as_deref().unwrap_or("Unknown")
                 );
+                let mut props = serde_json::Map::new();
+                for (k, v) in &query_properties {
+                    props.insert(k.clone(), v.clone());
+                }
+                let schema_val = serde_json::json!({
+                    "type": "object",
+                    "properties": Value::Object(props),
+                    "required": query_required,
+                });
+                synthetic_schemas
+                    .entry("Synthetic".to_string())
+                    .or_default()
+                    .insert(query_schema_name.clone(), schema_val);
                 Some(Ref {
                     reference: query_schema_name,
                     config: None,
@@ -648,7 +678,19 @@ fn build_routes_and_handlers(
         });
     }
 
-    (routes, handlers)
+    // Convert synthetic schemas to SchemaSpec
+    let extra_schemas: Vec<SchemaSpec> = synthetic_schemas
+        .into_iter()
+        .map(|(group, defs)| SchemaSpec {
+            schema: None,
+            name: group,
+            description: Some("Synthetic schemas from import".to_string()),
+            definitions: defs,
+            meta: None,
+        })
+        .collect();
+
+    (routes, handlers, extra_schemas)
 }
 
 /// Convert OpenAPI path `{param}` to Rash path `:param`

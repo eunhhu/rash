@@ -19,7 +19,7 @@ pub fn export_openapi(
 ) -> Result<OpenApiDocument, OpenApiError> {
     let info = build_info(config);
     let servers = build_servers(config);
-    let (paths, collected_tags) = build_paths(routes)?;
+    let (paths, collected_tags) = build_paths(routes, middleware)?;
     let components = build_components(schemas, middleware);
     let tags = build_tags(&collected_tags);
 
@@ -101,6 +101,7 @@ fn convert_path(path: &str) -> String {
 
 fn build_paths(
     routes: &[RouteSpec],
+    middleware: &[MiddlewareSpec],
 ) -> Result<(IndexMap<String, PathItemObject>, BTreeSet<String>), OpenApiError> {
     let mut paths: IndexMap<String, PathItemObject> = IndexMap::new();
     let mut all_tags = BTreeSet::new();
@@ -197,14 +198,14 @@ fn build_paths(
                 );
             }
 
-            // Security from endpoint middleware (auth → bearer)
+            // Security from endpoint middleware — use middleware name as scheme key
             let security: Vec<IndexMap<String, Vec<String>>> = endpoint
                 .middleware
                 .iter()
-                .filter(|mw| mw.reference == "auth")
-                .map(|_| {
+                .filter(|mw| middleware.iter().any(|m| m.name == mw.reference && is_security_middleware(m)))
+                .map(|mw| {
                     let mut m = IndexMap::new();
-                    m.insert("bearerAuth".to_string(), vec![]);
+                    m.insert(mw.reference.clone(), vec![]);
                     m
                 })
                 .collect();
@@ -265,27 +266,46 @@ fn build_path_params(route: &RouteSpec) -> Vec<ParameterObject> {
         .collect()
 }
 
+/// Normalize internal `{ "ref": "Name" }` back to standard `{ "$ref": "#/components/schemas/Name" }`.
+fn normalize_refs(val: &serde_json::Value) -> serde_json::Value {
+    match val {
+        serde_json::Value::Object(map) => {
+            // Internal ref → standard $ref
+            if map.len() == 1 {
+                if let Some(ref_val) = map.get("ref") {
+                    if let Some(ref_str) = ref_val.as_str() {
+                        return serde_json::json!({
+                            "$ref": format!("#/components/schemas/{ref_str}")
+                        });
+                    }
+                }
+            }
+            let mut new_map = serde_json::Map::new();
+            for (k, v) in map {
+                new_map.insert(k.clone(), normalize_refs(v));
+            }
+            serde_json::Value::Object(new_map)
+        }
+        serde_json::Value::Array(arr) => {
+            serde_json::Value::Array(arr.iter().map(normalize_refs).collect())
+        }
+        other => other.clone(),
+    }
+}
+
 fn build_components(schemas: &[SchemaSpec], middleware: &[MiddlewareSpec]) -> ComponentsObject {
     let mut comp_schemas = IndexMap::new();
 
     for schema in schemas {
         for (def_name, def_value) in &schema.definitions {
-            comp_schemas.insert(def_name.clone(), def_value.clone());
+            comp_schemas.insert(def_name.clone(), normalize_refs(def_value));
         }
     }
 
     let mut security_schemes = IndexMap::new();
     for mw in middleware {
-        if mw.name == "auth" {
-            security_schemes.insert(
-                "bearerAuth".to_string(),
-                SecuritySchemeObject {
-                    scheme_type: "http".to_string(),
-                    scheme: Some("bearer".to_string()),
-                    bearer_format: Some("JWT".to_string()),
-                    description: mw.description.clone(),
-                },
-            );
+        if let Some(scheme) = derive_security_scheme(mw) {
+            security_schemes.insert(mw.name.clone(), scheme);
         }
     }
 
@@ -293,6 +313,67 @@ fn build_components(schemas: &[SchemaSpec], middleware: &[MiddlewareSpec]) -> Co
         schemas: comp_schemas,
         security_schemes,
     }
+}
+
+/// Check if a middleware spec represents a security middleware.
+/// Looks for config properties that indicate bearer/apiKey scheme.
+fn is_security_middleware(mw: &MiddlewareSpec) -> bool {
+    if let Some(ref config) = mw.config {
+        // Check for bearerFormat (bearer auth) or "in"+"name" (apiKey auth)
+        let has_bearer = config.pointer("/properties/bearerFormat").is_some();
+        let has_api_key = config.pointer("/properties/in").is_some()
+            && config.pointer("/properties/name").is_some();
+        return has_bearer || has_api_key;
+    }
+    // Fallback: if the middleware has errors with "UNAUTHORIZED" key
+    if let Some(ref errors) = mw.errors {
+        return errors.contains_key("UNAUTHORIZED");
+    }
+    false
+}
+
+/// Derive an OpenAPI SecuritySchemeObject from a middleware spec.
+fn derive_security_scheme(mw: &MiddlewareSpec) -> Option<SecuritySchemeObject> {
+    if let Some(ref config) = mw.config {
+        // Bearer auth
+        if let Some(bearer_format_obj) = config.pointer("/properties/bearerFormat") {
+            let bearer_format = bearer_format_obj
+                .get("default")
+                .and_then(|v| v.as_str())
+                .unwrap_or("JWT")
+                .to_string();
+            return Some(SecuritySchemeObject {
+                scheme_type: "http".to_string(),
+                scheme: Some("bearer".to_string()),
+                bearer_format: Some(bearer_format),
+                description: mw.description.clone(),
+            });
+        }
+
+        // API Key auth
+        if config.pointer("/properties/in").is_some() {
+            return Some(SecuritySchemeObject {
+                scheme_type: "apiKey".to_string(),
+                scheme: None,
+                bearer_format: None,
+                description: mw.description.clone(),
+            });
+        }
+    }
+
+    // Fallback: middleware with UNAUTHORIZED errors and a handler → treat as bearer auth
+    if let Some(ref errors) = mw.errors {
+        if errors.contains_key("UNAUTHORIZED") && mw.handler.is_some() {
+            return Some(SecuritySchemeObject {
+                scheme_type: "http".to_string(),
+                scheme: Some("bearer".to_string()),
+                bearer_format: Some("JWT".to_string()),
+                description: mw.description.clone(),
+            });
+        }
+    }
+
+    None
 }
 
 fn build_tags(tags: &BTreeSet<String>) -> Vec<TagObject> {
@@ -497,13 +578,31 @@ mod tests {
             name: "auth".to_string(),
             description: Some("JWT authentication".to_string()),
             middleware_type: MiddlewareType::Request,
-            config: None,
+            config: Some(serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "bearerFormat": {
+                        "type": "string",
+                        "default": "JWT"
+                    }
+                }
+            })),
             handler: Some(Ref {
                 reference: "auth.verifyToken".to_string(),
                 config: None,
             }),
             provides: None,
-            errors: None,
+            errors: Some({
+                let mut m = IndexMap::new();
+                m.insert(
+                    "UNAUTHORIZED".to_string(),
+                    rash_spec::types::middleware::MiddlewareError {
+                        status: 401,
+                        message: "Invalid or missing token".to_string(),
+                    },
+                );
+                m
+            }),
             compose: None,
             short_circuit: None,
             meta: None,
@@ -641,8 +740,8 @@ mod tests {
         let doc = export_openapi(&config, &[], &[], &middleware).unwrap();
 
         let components = doc.components.unwrap();
-        assert!(components.security_schemes.contains_key("bearerAuth"));
-        let scheme = &components.security_schemes["bearerAuth"];
+        assert!(components.security_schemes.contains_key("auth"));
+        let scheme = &components.security_schemes["auth"];
         assert_eq!(scheme.scheme_type, "http");
         assert_eq!(scheme.scheme.as_deref(), Some("bearer"));
         assert_eq!(scheme.bearer_format.as_deref(), Some("JWT"));
@@ -652,11 +751,12 @@ mod tests {
     fn test_endpoint_security() {
         let config = make_config();
         let routes = vec![make_route()];
-        let doc = export_openapi(&config, &routes, &[], &[]).unwrap();
+        let middleware = vec![make_auth_middleware()];
+        let doc = export_openapi(&config, &routes, &[], &middleware).unwrap();
 
         let get_op = doc.paths["/v1/users"].get.as_ref().unwrap();
         assert_eq!(get_op.security.len(), 1);
-        assert!(get_op.security[0].contains_key("bearerAuth"));
+        assert!(get_op.security[0].contains_key("auth"));
 
         // POST has no auth middleware
         let post_op = doc.paths["/v1/users"].post.as_ref().unwrap();
@@ -686,7 +786,7 @@ mod tests {
         assert!(json.contains("\"openapi\": \"3.1.0\""));
         assert!(json.contains("\"title\": \"test-api\""));
         assert!(json.contains("/v1/users"));
-        assert!(json.contains("bearerAuth"));
+        assert!(json.contains("\"auth\""));
         assert!(json.contains("CreateUserBody"));
 
         // Verify it round-trips

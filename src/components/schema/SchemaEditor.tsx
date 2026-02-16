@@ -1,6 +1,8 @@
 import { Component, Show, createSignal, createEffect, createMemo } from "solid-js";
 import { writeSchema } from "../../ipc/commands";
 import type { SchemaSpec } from "../../ipc/types";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { createAutoSave } from "../../utils/autoSave";
 import { DefinitionList } from "./DefinitionList";
 import { FieldEditor, type FieldDef } from "./FieldEditor";
 
@@ -11,10 +13,10 @@ interface SchemaEditorProps {
 }
 
 export const SchemaEditor: Component<SchemaEditorProps> = (props) => {
+  const toast = useNotificationStore();
   const [draft, setDraft] = createSignal<SchemaSpec>(structuredClone(props.schema));
   const [selectedDef, setSelectedDef] = createSignal<string | null>(null);
   const [dirty, setDirty] = createSignal(false);
-  const [saving, setSaving] = createSignal(false);
 
   createEffect(() => {
     setDraft(structuredClone(props.schema));
@@ -28,6 +30,7 @@ export const SchemaEditor: Component<SchemaEditorProps> = (props) => {
   const markDirty = () => {
     setDirty(true);
     props.onDirty?.(true);
+    autoSave.trigger();
   };
 
   const addDefinition = () => {
@@ -68,27 +71,21 @@ export const SchemaEditor: Component<SchemaEditorProps> = (props) => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     try {
       await writeSchema(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
     }
   };
+
+  const autoSave = createAutoSave(handleSave);
 
   return (
     <div class="schema-editor">
       <div class="schema-editor-header">
         <span class="schema-editor-name">{draft().name}</span>
-        <button
-          class="btn btn-primary btn-sm"
-          disabled={!dirty() || saving()}
-          onClick={handleSave}
-        >
-          {saving() ? "Saving..." : "Save"}
-        </button>
       </div>
 
       <div class="schema-editor-body">

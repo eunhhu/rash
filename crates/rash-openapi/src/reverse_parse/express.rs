@@ -91,7 +91,9 @@ fn extract_route_handlers(
 
         // Build the handler AST from the body
         let body_ast = handler_extract::extract_handler_body(&handler_body, warnings);
-        let is_async = source[cap.get(0).unwrap().start()..].contains("async");
+        // Check async only within the matched route declaration (up to handler body start)
+        let route_match = &source[cap.get(0).unwrap().start()..match_end];
+        let is_async = route_match.contains("async");
 
         handlers.push(HandlerSpec {
             schema: None,

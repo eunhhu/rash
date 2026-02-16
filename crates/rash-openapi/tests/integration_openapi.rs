@@ -89,7 +89,15 @@ fn sample_middleware() -> Vec<MiddlewareSpec> {
         name: "auth".to_string(),
         description: Some("JWT auth".to_string()),
         middleware_type: MiddlewareType::Request,
-        config: None,
+        config: Some(serde_json::json!({
+            "type": "object",
+            "properties": {
+                "bearerFormat": {
+                    "type": "string",
+                    "default": "JWT"
+                }
+            }
+        })),
         handler: Some(Ref {
             reference: "auth.verify".to_string(),
             config: None,

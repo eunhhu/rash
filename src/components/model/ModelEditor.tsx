@@ -1,6 +1,8 @@
 import { Component, Show, createSignal, createEffect, createMemo } from "solid-js";
 import { writeModel } from "../../ipc/commands";
 import type { ModelSpec, ColumnSpec, RelationSpec, IndexSpec } from "../../ipc/types";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { createAutoSave } from "../../utils/autoSave";
 import { TabPanel, type TabItem } from "../common/TabPanel";
 import { ColumnEditor } from "./ColumnEditor";
 import { RelationEditor } from "./RelationEditor";
@@ -21,10 +23,10 @@ const TABS: TabItem[] = [
 ];
 
 export const ModelEditor: Component<ModelEditorProps> = (props) => {
+  const toast = useNotificationStore();
   const [draft, setDraft] = createSignal<ModelSpec>(structuredClone(props.model));
   const [activeTab, setActiveTab] = createSignal<ModelTab>("columns");
   const [dirty, setDirty] = createSignal(false);
-  const [saving, setSaving] = createSignal(false);
 
   createEffect(() => {
     setDraft(structuredClone(props.model));
@@ -36,6 +38,7 @@ export const ModelEditor: Component<ModelEditorProps> = (props) => {
   const markDirty = () => {
     setDirty(true);
     props.onDirty?.(true);
+    autoSave.trigger();
   };
 
   const updateColumns = (columns: Record<string, ColumnSpec>) => {
@@ -54,15 +57,16 @@ export const ModelEditor: Component<ModelEditorProps> = (props) => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     try {
       await writeModel(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
     }
   };
+
+  const autoSave = createAutoSave(handleSave);
 
   return (
     <div class="model-editor">
@@ -73,13 +77,6 @@ export const ModelEditor: Component<ModelEditorProps> = (props) => {
             <span class="model-editor-table-name">({draft().tableName})</span>
           </Show>
         </div>
-        <button
-          class="btn btn-primary btn-sm"
-          disabled={!dirty() || saving()}
-          onClick={handleSave}
-        >
-          {saving() ? "Saving..." : "Save"}
-        </button>
       </div>
 
       <TabPanel

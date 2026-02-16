@@ -1,5 +1,6 @@
 import { Component, Show } from "solid-js";
 import type { EndpointSpec, HttpMethod, RequestSpec, ResponseSpec } from "../../ipc/types";
+import { RefPicker } from "../common/RefPicker";
 import { RequestEditor } from "./RequestEditor";
 import { ResponseEditor } from "./ResponseEditor";
 
@@ -56,10 +57,11 @@ export const MethodPanel: Component<MethodPanelProps> = (props) => {
       {/* handler ref */}
       <div class="method-panel-field">
         <label>Handler Ref</label>
-        <input
+        <RefPicker
+          kind="handler"
           value={props.endpoint.handler?.ref ?? ""}
-          placeholder="handlers/myHandler"
-          onInput={(e) => update("handler", { ref: e.currentTarget.value })}
+          onChange={(ref) => update("handler", { ref })}
+          placeholder="Select handler..."
         />
       </div>
 
@@ -72,10 +74,11 @@ export const MethodPanel: Component<MethodPanelProps> = (props) => {
         <div class="method-panel-middleware-list">
           {(props.endpoint.middleware ?? []).map((mw, i) => (
             <div class="method-panel-middleware-row">
-              <input
+              <RefPicker
+                kind="middleware"
                 value={mw.ref}
-                placeholder="middleware/auth"
-                onInput={(e) => updateMiddlewareRef(i, e.currentTarget.value)}
+                onChange={(ref) => updateMiddlewareRef(i, ref)}
+                placeholder="Select middleware..."
               />
               <button class="btn-icon" onClick={() => removeMiddleware(i)}>{"\u00D7"}</button>
             </div>

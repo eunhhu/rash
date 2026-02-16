@@ -107,6 +107,30 @@ export function deleteHandler(filePath: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Spec move commands
+// ---------------------------------------------------------------------------
+
+export function moveRoute(oldFilePath: string, newFilePath: string): Promise<void> {
+  return invoke<void>("move_route", { oldFilePath, newFilePath });
+}
+
+export function moveSchema(oldFilePath: string, newFilePath: string): Promise<void> {
+  return invoke<void>("move_schema", { oldFilePath, newFilePath });
+}
+
+export function moveModel(oldFilePath: string, newFilePath: string): Promise<void> {
+  return invoke<void>("move_model", { oldFilePath, newFilePath });
+}
+
+export function moveMiddleware(oldFilePath: string, newFilePath: string): Promise<void> {
+  return invoke<void>("move_middleware", { oldFilePath, newFilePath });
+}
+
+export function moveHandler(oldFilePath: string, newFilePath: string): Promise<void> {
+  return invoke<void>("move_handler", { oldFilePath, newFilePath });
+}
+
+// ---------------------------------------------------------------------------
 // Codegen commands
 // ---------------------------------------------------------------------------
 

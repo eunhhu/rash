@@ -208,3 +208,81 @@ pub fn delete_middleware(file_path: String, state: State<'_, AppState>) -> Resul
 pub fn delete_handler(file_path: String, state: State<'_, AppState>) -> Result<(), AppError> {
     delete_spec_file(&state, &file_path)
 }
+
+// ── Move commands ──
+
+fn move_spec_file(
+    state: &State<'_, AppState>,
+    old_file_path: &str,
+    new_file_path: &str,
+) -> Result<(), AppError> {
+    let mut guard = state.project.lock().map_err(|e| AppError::IoError(e.to_string()))?;
+    let open = guard.as_mut().ok_or(AppError::NoProject)?;
+
+    let old_full = safe_resolve(&open.root, old_file_path)?;
+    let new_full = safe_resolve(&open.root, new_file_path)?;
+
+    if !old_full.exists() {
+        return Err(AppError::FileNotFound(old_file_path.to_string()));
+    }
+
+    if let Some(parent) = new_full.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    std::fs::copy(&old_full, &new_full)?;
+    std::fs::remove_file(&old_full)?;
+
+    // Reload project and rebuild index
+    let (loaded, _) = loader::load_project(&open.root)?;
+    let (index, _) = build_index(&loaded);
+    open.project = loaded;
+    open.index = index;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn move_route(
+    old_file_path: String,
+    new_file_path: String,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    move_spec_file(&state, &old_file_path, &new_file_path)
+}
+
+#[tauri::command]
+pub fn move_schema(
+    old_file_path: String,
+    new_file_path: String,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    move_spec_file(&state, &old_file_path, &new_file_path)
+}
+
+#[tauri::command]
+pub fn move_model(
+    old_file_path: String,
+    new_file_path: String,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    move_spec_file(&state, &old_file_path, &new_file_path)
+}
+
+#[tauri::command]
+pub fn move_middleware(
+    old_file_path: String,
+    new_file_path: String,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    move_spec_file(&state, &old_file_path, &new_file_path)
+}
+
+#[tauri::command]
+pub fn move_handler(
+    old_file_path: String,
+    new_file_path: String,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    move_spec_file(&state, &old_file_path, &new_file_path)
+}

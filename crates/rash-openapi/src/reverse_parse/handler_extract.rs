@@ -93,7 +93,10 @@ fn try_parse_statement(line: &str, warnings: &mut Vec<String>) -> Option<AstNode
         });
     }
 
-    // Unrecognized line — skip silently (not every line is a statement)
+    // Unrecognized line — emit warning for non-trivial lines
+    if !line.starts_with('{') && !line.starts_with('}') && !line.starts_with("/*") && !line.ends_with("*/") {
+        warnings.push(format!("skipped unrecognized statement: {}", truncate_line(line, 80)));
+    }
     None
 }
 
@@ -331,6 +334,15 @@ fn make_native_bridge_raw(raw_code: &str) -> AstNode {
         },
         return_type: None,
         fallback: None,
+    }
+}
+
+/// Truncate a line for display in warnings.
+fn truncate_line(line: &str, max: usize) -> String {
+    if line.len() <= max {
+        line.to_string()
+    } else {
+        format!("{}...", &line[..max])
     }
 }
 

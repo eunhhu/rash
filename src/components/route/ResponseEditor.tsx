@@ -1,5 +1,6 @@
 import { Component, For } from "solid-js";
 import type { ResponseSpec } from "../../ipc/types";
+import { RefPicker } from "../common/RefPicker";
 
 interface ResponseEditorProps {
   responses: Record<string, ResponseSpec>;
@@ -79,10 +80,11 @@ export const ResponseEditor: Component<ResponseEditorProps> = (props) => {
                 </div>
                 <div class="response-editor-field">
                   <label>Schema Ref</label>
-                  <input
+                  <RefPicker
+                    kind="schema"
                     value={spec.schema?.ref ?? ""}
-                    placeholder="schemas/ResponseDto"
-                    onInput={(e) => updateField(code, "schemaRef", e.currentTarget.value)}
+                    onChange={(ref) => updateField(code, "schemaRef", ref)}
+                    placeholder="Select schema..."
                   />
                 </div>
               </div>

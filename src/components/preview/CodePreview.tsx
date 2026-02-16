@@ -33,10 +33,15 @@ export const CodePreview: Component<CodePreviewProps> = (props) => {
         const result = await previewCode({ language: _lang, framework: _fw });
         setFiles(result);
         const fileNames = Object.keys(result);
-        if (fileNames.length > 0 && !result[selectedFile()]) {
-          setSelectedFile(fileNames[0]);
+        if (fileNames.length > 0) {
+          const currentFile = selectedFile();
+          const targetFile = result[currentFile] ? currentFile : fileNames[0];
+          setSelectedFile(targetFile);
+          setCode(result[targetFile] ?? "// No preview available");
+        } else {
+          setSelectedFile("");
+          setCode("// No preview available");
         }
-        setCode(result[selectedFile()] ?? "// No files generated");
       } catch (err) {
         setFiles({});
         setCode(`// Preview error: ${err instanceof Error ? err.message : String(err)}`);

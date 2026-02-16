@@ -1,7 +1,11 @@
 import { Component, Show, createSignal, createEffect, For } from "solid-js";
 import { writeRoute } from "../../ipc/commands";
 import type { RouteSpec, HttpMethod, EndpointSpec } from "../../ipc/types";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { createAutoSave } from "../../utils/autoSave";
 import { Badge } from "../common/Badge";
+import { DropdownMenu, type DropdownItem } from "../common/DropdownMenu";
+import { MethodBadge } from "../common/MethodBadge";
 import { TabPanel, type TabItem } from "../common/TabPanel";
 import { MethodPanel } from "./MethodPanel";
 import { ParamEditor } from "./ParamEditor";
@@ -15,10 +19,12 @@ interface RouteEditorProps {
 const ALL_METHODS: HttpMethod[] = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
 
 export const RouteEditor: Component<RouteEditorProps> = (props) => {
+  const toast = useNotificationStore();
   const [draft, setDraft] = createSignal<RouteSpec>(structuredClone(props.route));
   const [activeMethod, setActiveMethod] = createSignal<HttpMethod | null>(null);
   const [dirty, setDirty] = createSignal(false);
-  const [saving, setSaving] = createSignal(false);
+  const [editingPath, setEditingPath] = createSignal(false);
+  const [pathDraft, setPathDraft] = createSignal("");
 
   createEffect(() => {
     setDraft(structuredClone(props.route));
@@ -36,6 +42,7 @@ export const RouteEditor: Component<RouteEditorProps> = (props) => {
   const markDirty = () => {
     setDirty(true);
     props.onDirty?.(true);
+    autoSave.trigger();
   };
 
   const updateMethod = (method: HttpMethod, endpoint: EndpointSpec) => {
@@ -70,47 +77,82 @@ export const RouteEditor: Component<RouteEditorProps> = (props) => {
 
   const unusedMethods = () => ALL_METHODS.filter((m) => !draft().methods[m]);
 
+  const startEditPath = () => {
+    setPathDraft(draft().path);
+    setEditingPath(true);
+  };
+
+  const confirmPath = () => {
+    const newPath = pathDraft().trim();
+    if (newPath && newPath !== draft().path) {
+      setDraft((prev) => ({ ...prev, path: newPath }));
+      markDirty();
+    }
+    setEditingPath(false);
+  };
+
+  const addMethodItems = (): DropdownItem[] =>
+    unusedMethods().map((m) => ({
+      label: m,
+      action: () => addMethod(m),
+    }));
+
   const handleSave = async () => {
-    setSaving(true);
     try {
       await writeRoute(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
     }
   };
+
+  const autoSave = createAutoSave(handleSave);
 
   return (
     <div class="route-editor">
       {/* Path header */}
       <div class="route-editor-header">
-        <span class="route-editor-path">{draft().path}</span>
-        <div class="route-editor-actions">
-          <Show when={unusedMethods().length > 0}>
-            <select
-              class="route-editor-add-method"
-              value=""
-              onChange={(e) => {
-                const v = e.currentTarget.value as HttpMethod;
-                if (v) addMethod(v);
-                e.currentTarget.value = "";
-              }}
-            >
-              <option value="" disabled>+ Add method</option>
-              <For each={unusedMethods()}>
-                {(m) => <option value={m}>{m}</option>}
-              </For>
-            </select>
-          </Show>
-          <button
-            class="btn btn-primary btn-sm"
-            disabled={!dirty() || saving()}
-            onClick={handleSave}
-          >
-            {saving() ? "Saving..." : "Save"}
-          </button>
-        </div>
+        <Show when={!editingPath()} fallback={
+          <input
+            class="route-editor-path-input"
+            value={pathDraft()}
+            onInput={(e) => setPathDraft(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") confirmPath();
+              if (e.key === "Escape") setEditingPath(false);
+            }}
+            onBlur={() => confirmPath()}
+            autofocus
+          />
+        }>
+          <span class="route-editor-path" onClick={startEditPath} title="Click to edit path">
+            {draft().path}
+          </span>
+        </Show>
+      </div>
+
+      {/* Method badge bar */}
+      <div class="route-editor-method-bar">
+        <For each={methods()}>
+          {(m) => (
+            <MethodBadge
+              method={m}
+              active={activeMethod() === m}
+              removable={methods().length > 1}
+              onClick={() => setActiveMethod(m)}
+              onRemove={() => removeMethod(m)}
+            />
+          )}
+        </For>
+        <Show when={unusedMethods().length > 0}>
+          <DropdownMenu
+            trigger={
+              <span class="method-badge-add">+ Add</span>
+            }
+            items={addMethodItems()}
+          />
+        </Show>
       </div>
 
       {/* Params */}
@@ -168,15 +210,43 @@ export const RouteEditor: Component<RouteEditorProps> = (props) => {
           font-size: 14px;
           font-weight: 600;
           color: var(--rash-text);
+          cursor: pointer;
         }
-        .route-editor-actions {
+        .route-editor-path:hover {
+          text-decoration: underline;
+          text-decoration-style: dashed;
+        }
+        .route-editor-path-input {
+          font-family: var(--rash-font);
+          font-size: 14px;
+          font-weight: 600;
+          padding: 2px 6px;
+          width: 300px;
+        }
+        .route-editor-method-bar {
           display: flex;
-          gap: 8px;
           align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border-bottom: 1px solid var(--rash-border);
+          flex-shrink: 0;
+          flex-wrap: wrap;
         }
-        .route-editor-add-method {
-          font-size: 12px;
-          padding: 4px 8px;
+        .method-badge-add {
+          display: inline-flex;
+          align-items: center;
+          padding: 3px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--rash-text-muted);
+          border: 1px dashed var(--rash-border);
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .method-badge-add:hover {
+          color: var(--rash-text-secondary);
+          border-color: var(--rash-text-muted);
         }
         .route-editor-params {
           padding: 12px 16px;

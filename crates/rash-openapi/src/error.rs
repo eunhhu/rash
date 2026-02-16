@@ -16,6 +16,9 @@ pub enum OpenApiError {
 
     #[error("unsupported OpenAPI version: {0}")]
     UnsupportedVersion(String),
+
+    #[error("parse error: {0}")]
+    ParseError(String),
 }
 
 #[derive(Debug, Error)]

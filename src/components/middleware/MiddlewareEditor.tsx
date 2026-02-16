@@ -1,6 +1,8 @@
 import { Component, For, Show, createSignal, createEffect } from "solid-js";
 import { writeMiddleware } from "../../ipc/commands";
 import type { MiddlewareSpec, MiddlewareType, MiddlewareError } from "../../ipc/types";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { createAutoSave } from "../../utils/autoSave";
 
 interface MiddlewareEditorProps {
   middleware: MiddlewareSpec;
@@ -11,9 +13,9 @@ interface MiddlewareEditorProps {
 const MIDDLEWARE_TYPES: MiddlewareType[] = ["request", "response", "error", "composed"];
 
 export const MiddlewareEditor: Component<MiddlewareEditorProps> = (props) => {
+  const toast = useNotificationStore();
   const [draft, setDraft] = createSignal<MiddlewareSpec>(structuredClone(props.middleware));
   const [dirty, setDirty] = createSignal(false);
-  const [saving, setSaving] = createSignal(false);
 
   createEffect(() => {
     setDraft(structuredClone(props.middleware));
@@ -23,6 +25,7 @@ export const MiddlewareEditor: Component<MiddlewareEditorProps> = (props) => {
   const markDirty = () => {
     setDirty(true);
     props.onDirty?.(true);
+    autoSave.trigger();
   };
 
   const update = <K extends keyof MiddlewareSpec>(key: K, value: MiddlewareSpec[K]) => {
@@ -104,27 +107,21 @@ export const MiddlewareEditor: Component<MiddlewareEditorProps> = (props) => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     try {
       await writeMiddleware(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
     }
   };
+
+  const autoSave = createAutoSave(handleSave);
 
   return (
     <div class="mw-editor">
       <div class="mw-editor-header">
         <span class="mw-editor-name">{draft().name}</span>
-        <button
-          class="btn btn-primary btn-sm"
-          disabled={!dirty() || saving()}
-          onClick={handleSave}
-        >
-          {saving() ? "Saving..." : "Save"}
-        </button>
       </div>
 
       <div class="mw-editor-content">

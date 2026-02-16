@@ -29,19 +29,19 @@ function createEditorStore() {
     const idx = tabs.findIndex((t) => t.id === id);
     if (idx === -1) return;
 
+    // Calculate next tab BEFORE splice modifies the array
+    let nextId: string | null = null;
+    if (activeTabId() === id) {
+      const next = tabs[idx + 1] ?? tabs[idx - 1];
+      nextId = next?.id ?? null;
+    }
+
     setTabs(produce((draft) => {
       draft.splice(idx, 1);
     }));
 
-    // If the closed tab was active, activate an adjacent tab
     if (activeTabId() === id) {
-      if (tabs.length > 1) {
-        const nextIdx = idx >= tabs.length - 1 ? idx - 1 : idx;
-        const nextTab = tabs[nextIdx === idx ? nextIdx + 1 : nextIdx];
-        setActiveTabId(nextTab ? nextTab.id : null);
-      } else {
-        setActiveTabId(null);
-      }
+      setActiveTabId(nextId);
     }
   }
 
@@ -65,6 +65,20 @@ function createEditorStore() {
     }
   }
 
+  function updateTabPath(oldId: string, newId: string, newLabel: string): void {
+    const idx = tabs.findIndex((t) => t.id === oldId);
+    if (idx === -1) return;
+    const wasActive = activeTabId() === oldId;
+    setTabs(produce((draft) => {
+      draft[idx].id = newId;
+      draft[idx].filePath = newId;
+      draft[idx].label = newLabel;
+    }));
+    if (wasActive) {
+      setActiveTabId(newId);
+    }
+  }
+
   return {
     tabs,
     activeTabId,
@@ -73,6 +87,7 @@ function createEditorStore() {
     setActiveTab,
     markDirty,
     markClean,
+    updateTabPath,
   };
 }
 

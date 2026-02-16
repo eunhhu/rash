@@ -1,5 +1,6 @@
 import { Component, For } from "solid-js";
 import type { RequestSpec } from "../../ipc/types";
+import { RefPicker } from "../common/RefPicker";
 
 interface RequestEditorProps {
   request: RequestSpec;
@@ -49,10 +50,11 @@ export const RequestEditor: Component<RequestEditorProps> = (props) => {
       {/* Query */}
       <div class="request-editor-section">
         <label class="request-editor-label">Query Schema Ref</label>
-        <input
+        <RefPicker
+          kind="schema"
           value={props.request.query?.ref ?? ""}
-          placeholder="schemas/QueryDto"
-          onInput={(e) => updateQuery(e.currentTarget.value)}
+          onChange={(ref) => updateQuery(ref)}
+          placeholder="Select schema..."
         />
       </div>
 
@@ -60,10 +62,11 @@ export const RequestEditor: Component<RequestEditorProps> = (props) => {
       <div class="request-editor-section">
         <label class="request-editor-label">Request Body</label>
         <div class="request-editor-row">
-          <input
+          <RefPicker
+            kind="schema"
             value={props.request.body?.ref ?? ""}
-            placeholder="schemas/CreateDto"
-            onInput={(e) => updateBody("ref", e.currentTarget.value)}
+            onChange={(ref) => updateBody("ref", ref)}
+            placeholder="Select schema..."
           />
           <select
             value={props.request.body?.contentType ?? "application/json"}

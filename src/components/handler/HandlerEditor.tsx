@@ -1,6 +1,8 @@
 import { Component, Show, createSignal, createEffect } from "solid-js";
 import { previewCode, writeHandler } from "../../ipc/commands";
 import type { HandlerSpec, AstNode, Tier, Language } from "../../ipc/types";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { createAutoSave } from "../../utils/autoSave";
 import { createNode } from "../../utils/ast";
 import { NodePalette } from "./NodePalette";
 import { AstNodeView } from "./AstNodeView";
@@ -14,10 +16,10 @@ interface HandlerEditorProps {
 }
 
 export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
+  const toast = useNotificationStore();
   const [draft, setDraft] = createSignal<HandlerSpec>(structuredClone(props.handler));
   const [selectedNodeId, setSelectedNodeId] = createSignal<string | null>(null);
   const [dirty, setDirty] = createSignal(false);
-  const [saving, setSaving] = createSignal(false);
   const [previewSrc, setPreviewSrc] = createSignal("");
   const [previewLang, setPreviewLang] = createSignal<Language>("typescript");
 
@@ -52,6 +54,7 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
   const markDirty = () => {
     setDirty(true);
     props.onDirty?.(true);
+    autoSave.trigger();
   };
 
   const handleAddNode = (type: string, tier: Tier) => {
@@ -81,15 +84,16 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     try {
       await writeHandler(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
     }
   };
+
+  const autoSave = createAutoSave(handleSave);
 
   return (
     <div class="handler-editor">
@@ -106,13 +110,6 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
               Delete Block
             </button>
           </Show>
-          <button
-            class="btn btn-primary btn-sm"
-            disabled={!dirty() || saving()}
-            onClick={handleSave}
-          >
-            {saving() ? "Saving..." : "Save"}
-          </button>
         </div>
       </div>
 
