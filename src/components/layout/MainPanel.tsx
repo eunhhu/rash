@@ -1,6 +1,6 @@
 import { Component, For, Show, Switch, Match, createSignal, createEffect } from "solid-js";
 import { useEditorStore, type EditorTab } from "../../stores/editorStore";
-import { invoke } from "../../ipc/invoke";
+import { readRoute, readSchema, readModel, readMiddleware, readHandler } from "../../ipc/commands";
 import type { RouteSpec, SchemaSpec, ModelSpec, MiddlewareSpec, HandlerSpec } from "../../ipc/types";
 import { RouteEditor } from "../route/RouteEditor";
 import { SchemaEditor } from "../schema/SchemaEditor";
@@ -11,12 +11,12 @@ import { SplitPane } from "./SplitPane";
 import { CodePreview } from "../preview/CodePreview";
 import "./layout.css";
 
-const READ_COMMANDS: Record<string, string> = {
-  route: "read_route",
-  schema: "read_schema",
-  model: "read_model",
-  middleware: "read_middleware",
-  handler: "read_handler",
+const READ_FNS: Record<string, (filePath: string) => Promise<unknown>> = {
+  route: readRoute,
+  schema: readSchema,
+  model: readModel,
+  middleware: readMiddleware,
+  handler: readHandler,
 };
 
 interface EditorWrapperProps {
@@ -30,15 +30,15 @@ const EditorWrapper: Component<EditorWrapperProps> = (props) => {
   const { markDirty, markClean } = useEditorStore();
 
   createEffect(() => {
-    const cmd = READ_COMMANDS[props.tab.kind];
-    if (!cmd) {
+    const readFn = READ_FNS[props.tab.kind];
+    if (!readFn) {
       setError(`Unknown editor kind: ${props.tab.kind}`);
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
-    invoke(cmd, { filePath: props.tab.filePath })
+    readFn(props.tab.filePath)
       .then((result) => {
         setData(result);
         setLoading(false);

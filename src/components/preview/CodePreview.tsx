@@ -1,5 +1,5 @@
 import { Component, For, createSignal, createEffect, onCleanup } from "solid-js";
-import { invoke } from "../../ipc/invoke";
+import { previewCode } from "../../ipc/commands";
 import type { Language, Framework } from "../../ipc/types";
 import { CodeViewer } from "../common/CodeViewer";
 import { LanguageSelector } from "./LanguageSelector";
@@ -30,9 +30,7 @@ export const CodePreview: Component<CodePreviewProps> = (props) => {
     timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const result = await invoke<Record<string, string>>("preview_code", {
-          args: { language: _lang, framework: _fw },
-        });
+        const result = await previewCode({ language: _lang, framework: _fw });
         setFiles(result);
         const fileNames = Object.keys(result);
         if (fileNames.length > 0 && !result[selectedFile()]) {

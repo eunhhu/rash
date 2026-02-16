@@ -1,5 +1,5 @@
 import { Component, For, Show, createSignal, createEffect } from "solid-js";
-import { invoke } from "../../ipc/invoke";
+import { writeMiddleware } from "../../ipc/commands";
 import type { MiddlewareSpec, MiddlewareType, MiddlewareError } from "../../ipc/types";
 
 interface MiddlewareEditorProps {
@@ -106,7 +106,7 @@ export const MiddlewareEditor: Component<MiddlewareEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_middleware", { filePath: props.filePath, value: draft() });
+      await writeMiddleware(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
     } finally {

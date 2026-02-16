@@ -22,6 +22,7 @@ rash-ir.workspace = true
 rash-valid.workspace = true
 rash-codegen.workspace = true
 rash-runtime.workspace = true
+rash-openapi.workspace = true
 
 [lib]
 name = "rash_app"

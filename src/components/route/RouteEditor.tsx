@@ -1,5 +1,5 @@
 import { Component, Show, createSignal, createEffect, For } from "solid-js";
-import { invoke } from "../../ipc/invoke";
+import { writeRoute } from "../../ipc/commands";
 import type { RouteSpec, HttpMethod, EndpointSpec } from "../../ipc/types";
 import { Badge } from "../common/Badge";
 import { TabPanel, type TabItem } from "../common/TabPanel";
@@ -73,7 +73,7 @@ export const RouteEditor: Component<RouteEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_route", { filePath: props.filePath, value: draft() });
+      await writeRoute(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
     } finally {

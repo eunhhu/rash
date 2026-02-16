@@ -1,5 +1,5 @@
 import { Component, Show, createSignal, createEffect } from "solid-js";
-import { invoke } from "../../ipc/invoke";
+import { previewCode, writeHandler } from "../../ipc/commands";
 import type { HandlerSpec, AstNode, Tier, Language } from "../../ipc/types";
 import { createNode } from "../../utils/ast";
 import { NodePalette } from "./NodePalette";
@@ -18,7 +18,7 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
   const [selectedNodeId, setSelectedNodeId] = createSignal<string | null>(null);
   const [dirty, setDirty] = createSignal(false);
   const [saving, setSaving] = createSignal(false);
-  const [previewCode, setPreviewCode] = createSignal("");
+  const [previewSrc, setPreviewSrc] = createSignal("");
   const [previewLang, setPreviewLang] = createSignal<Language>("typescript");
 
   createEffect(() => {
@@ -36,17 +36,15 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
     clearTimeout(previewTimer);
     previewTimer = setTimeout(async () => {
       try {
-        const fileMap = await invoke<Record<string, string>>("preview_code", {
-          args: { language: lang, framework: "express" },
-        });
+        const fileMap = await previewCode({ language: lang, framework: "express" });
         // Find a file matching this handler's name, or show first file
         const handlerName = draft().name.toLowerCase();
         const match = Object.entries(fileMap).find(([k]) =>
           k.toLowerCase().includes(handlerName)
         );
-        setPreviewCode(match ? match[1] : Object.values(fileMap)[0] ?? "// No output");
+        setPreviewSrc(match ? match[1] : Object.values(fileMap)[0] ?? "// No output");
       } catch {
-        setPreviewCode("// Preview unavailable");
+        setPreviewSrc("// Preview unavailable");
       }
     }, 300);
   });
@@ -85,7 +83,7 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_handler", { filePath: props.filePath, value: draft() });
+      await writeHandler(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
     } finally {
@@ -145,7 +143,7 @@ export const HandlerEditor: Component<HandlerEditorProps> = (props) => {
               <option value="go">Go</option>
             </select>
           </div>
-          <CodeViewer code={previewCode()} language={previewLang()} />
+          <CodeViewer code={previewSrc()} language={previewLang()} />
         </div>
       </div>
 

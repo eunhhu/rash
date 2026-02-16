@@ -5,7 +5,9 @@ use rash_spec::index::SpecIndex;
 use rash_spec::loader::LoadedProject;
 use tokio::sync::Mutex as TokioMutex;
 
-use rash_runtime::process_manager::{ProcessManager, ServerStatus};
+use rash_runtime::hmu_engine::HmuEngine;
+use rash_runtime::incremental::IncrementalCodegen;
+use rash_runtime::process_manager::ProcessManager;
 
 /// Open project state
 pub struct OpenProject {
@@ -17,7 +19,8 @@ pub struct OpenProject {
 /// Runtime state for the managed server process
 pub struct RuntimeState {
     pub process_manager: ProcessManager,
-    pub status_rx: tokio::sync::watch::Receiver<ServerStatus>,
+    pub hmu_engine: HmuEngine,
+    pub incremental: IncrementalCodegen,
 }
 
 /// Application state managed by Tauri

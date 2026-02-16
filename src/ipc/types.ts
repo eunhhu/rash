@@ -283,3 +283,12 @@ export interface PreviewCodeArgs {
   language: Language;
   framework: Framework;
 }
+
+// ---------------------------------------------------------------------------
+// OpenAPI import/export
+// ---------------------------------------------------------------------------
+
+export interface ImportResult {
+  filesCreated: string[];
+  warnings: string[];
+}

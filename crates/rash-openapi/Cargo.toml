@@ -1,6 +1,6 @@
 [package]
 name = "rash-openapi"
-description = "Rash OpenAPI import/export (stub for Phase 5)"
+description = "Rash OpenAPI 3.1 import/export"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,3 +8,11 @@ rust-version.workspace = true
 
 [dependencies]
 rash-spec = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+indexmap = { workspace = true }
+thiserror = { workspace = true }
+regex = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }

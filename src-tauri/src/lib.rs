@@ -39,6 +39,10 @@ pub fn run() {
             commands::runtime::stop_server,
             commands::runtime::restart_server,
             commands::runtime::get_server_status,
+            commands::runtime::apply_hmu,
+            commands::openapi::export_openapi,
+            commands::openapi::import_openapi,
+            commands::openapi::import_from_code,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

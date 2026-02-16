@@ -2,6 +2,10 @@ use std::collections::HashMap;
 
 use tauri::{AppHandle, Emitter, State};
 
+use serde::Serialize;
+
+use rash_runtime::hmu_engine::{HmuConfig, HmuEngine};
+use rash_runtime::incremental::{FileChange, IncrementalCodegen};
 use rash_runtime::preflight::PreflightReport;
 use rash_runtime::preflight_checker::PreflightChecker;
 use rash_runtime::process_manager::{ProcessManager, ServerConfig, ServerStatus};
@@ -54,7 +58,9 @@ pub async fn start_server(
     {
         let mut rt_guard = state.runtime.lock().await;
         if let Some(ref mut rt_state) = *rt_guard {
-            let _ = rt_state.process_manager.stop().await;
+            if let Err(e) = rt_state.process_manager.stop().await {
+                eprintln!("[rash] warning: failed to stop existing server: {e}");
+            }
         }
         *rt_guard = None;
     }
@@ -72,7 +78,8 @@ pub async fn start_server(
         let mut rt_guard = state.runtime.lock().await;
         *rt_guard = Some(RuntimeState {
             process_manager: pm,
-            status_rx,
+            hmu_engine: HmuEngine::new(HmuConfig::default()),
+            incremental: IncrementalCodegen::new(),
         });
     }
 
@@ -81,7 +88,21 @@ pub async fn start_server(
     tokio::spawn(async move {
         let mut log_rx = log_rx;
         while let Some(log) = log_rx.recv().await {
-            let _ = app_clone.emit("server:log", &log);
+            if let Err(e) = app_clone.emit("server:log", &log) {
+                eprintln!("[rash] warning: failed to emit server log: {e}");
+            }
+        }
+    });
+
+    // 6. Spawn status forwarding task — owns status_rx
+    let app_clone2 = app.clone();
+    tokio::spawn(async move {
+        let mut status_rx = status_rx;
+        while status_rx.changed().await.is_ok() {
+            let status = *status_rx.borrow_and_update();
+            if let Err(e) = app_clone2.emit("server:status", &status) {
+                eprintln!("[rash] warning: failed to emit server status: {e}");
+            }
         }
     });
 
@@ -114,7 +135,9 @@ pub async fn restart_server(
     {
         let mut rt_guard = state.runtime.lock().await;
         if let Some(ref mut rt_state) = *rt_guard {
-            let _ = rt_state.process_manager.stop().await;
+            if let Err(e) = rt_state.process_manager.stop().await {
+                eprintln!("[rash] warning: failed to stop server for restart: {e}");
+            }
         }
         *rt_guard = None;
     }
@@ -130,4 +153,55 @@ pub async fn get_server_status(state: State<'_, AppState>) -> Result<ServerStatu
         Some(rt_state) => Ok(rt_state.process_manager.status()),
         None => Ok(ServerStatus::Stopped),
     }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HmuResultPayload {
+    pub id: String,
+    pub status: String,
+    pub applied: Vec<String>,
+    pub failed: Vec<String>,
+    pub requires_restart: bool,
+}
+
+#[tauri::command]
+pub async fn apply_hmu(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    changes: Vec<FileChange>,
+) -> Result<HmuResultPayload, AppError> {
+    let mut rt_guard = state.runtime.lock().await;
+    let rt_state = rt_guard
+        .as_mut()
+        .ok_or(AppError::RuntimeError("no server is running".into()))?;
+
+    // Convert FileChanges to HMU modules
+    let modules = IncrementalCodegen::to_hmu_modules(&changes);
+
+    // Create HMU update
+    let update = rt_state.hmu_engine.create_update(
+        modules
+            .into_iter()
+            .map(|m| (m.path, m.action, m.content))
+            .collect(),
+    );
+
+    let payload = HmuResultPayload {
+        id: update.id.clone(),
+        status: "pending".into(),
+        applied: vec![],
+        failed: vec![],
+        requires_restart: false,
+    };
+
+    // Emit the update event for the frontend to track
+    if let Err(e) = app.emit("hmu:result", &payload) {
+        eprintln!("[rash] warning: failed to emit hmu result: {e}");
+    }
+
+    // Update the incremental cache
+    rt_state.incremental.update_cache(&changes);
+
+    Ok(payload)
 }

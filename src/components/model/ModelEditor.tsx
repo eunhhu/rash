@@ -1,5 +1,5 @@
 import { Component, Show, createSignal, createEffect, createMemo } from "solid-js";
-import { invoke } from "../../ipc/invoke";
+import { writeModel } from "../../ipc/commands";
 import type { ModelSpec, ColumnSpec, RelationSpec, IndexSpec } from "../../ipc/types";
 import { TabPanel, type TabItem } from "../common/TabPanel";
 import { ColumnEditor } from "./ColumnEditor";
@@ -56,7 +56,7 @@ export const ModelEditor: Component<ModelEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_model", { filePath: props.filePath, value: draft() });
+      await writeModel(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
     } finally {

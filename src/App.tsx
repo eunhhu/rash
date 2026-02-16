@@ -1,13 +1,17 @@
-import { Component, Show } from "solid-js";
+import { Component, Show, createSignal } from "solid-js";
 import { useProjectStore } from "./stores/projectStore";
 import { TopBar } from "./components/layout/TopBar";
 import { Sidebar } from "./components/layout/Sidebar";
 import { MainPanel } from "./components/layout/MainPanel";
 import { BottomPanel } from "./components/layout/BottomPanel";
 import { CreateProjectDialog } from "./components/dialogs/CreateProjectDialog";
+import { ImportDialog } from "./components/dialogs/ImportDialog";
+import { ExportDialog } from "./components/dialogs/ExportDialog";
 
 const App: Component = () => {
-  const { project, showCreateDialog, setShowCreateDialog, openProject } = useProjectStore();
+  const { project, showCreateDialog, setShowCreateDialog, openProject, refreshTree } = useProjectStore();
+  const [showImportDialog, setShowImportDialog] = createSignal(false);
+  const [showExportDialog, setShowExportDialog] = createSignal(false);
 
   const handleOpenProject = async () => {
     try {
@@ -16,14 +20,17 @@ const App: Component = () => {
       if (selected && typeof selected === "string") {
         await openProject(selected);
       }
-    } catch {
-      // Dialog API unavailable or user cancelled
+    } catch (err) {
+      console.error("Failed to open project:", err);
     }
   };
 
   return (
     <div class="app">
-      <TopBar />
+      <TopBar
+        onImport={() => setShowImportDialog(true)}
+        onExport={() => setShowExportDialog(true)}
+      />
       <div class="app-body">
         <Show when={project()} fallback={<WelcomeScreen onNew={() => setShowCreateDialog(true)} onOpen={handleOpenProject} />}>
           <Sidebar />
@@ -35,6 +42,15 @@ const App: Component = () => {
       </div>
       <Show when={showCreateDialog()}>
         <CreateProjectDialog onClose={() => setShowCreateDialog(false)} />
+      </Show>
+      <Show when={showImportDialog()}>
+        <ImportDialog
+          onClose={() => setShowImportDialog(false)}
+          onImported={() => refreshTree().catch(() => {})}
+        />
+      </Show>
+      <Show when={showExportDialog()}>
+        <ExportDialog onClose={() => setShowExportDialog(false)} />
       </Show>
     </div>
   );

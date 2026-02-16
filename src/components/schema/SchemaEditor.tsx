@@ -1,5 +1,5 @@
 import { Component, Show, createSignal, createEffect, createMemo } from "solid-js";
-import { invoke } from "../../ipc/invoke";
+import { writeSchema } from "../../ipc/commands";
 import type { SchemaSpec } from "../../ipc/types";
 import { DefinitionList } from "./DefinitionList";
 import { FieldEditor, type FieldDef } from "./FieldEditor";
@@ -70,7 +70,7 @@ export const SchemaEditor: Component<SchemaEditorProps> = (props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await invoke("write_schema", { filePath: props.filePath, value: draft() });
+      await writeSchema(props.filePath, draft());
       setDirty(false);
       props.onDirty?.(false);
     } finally {

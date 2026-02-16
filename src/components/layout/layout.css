@@ -512,3 +512,141 @@
 .input-with-action input {
   flex: 1;
 }
+
+/* --- Status dot ------------------------------------------- */
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.status-dot.status-stopped {
+  background: var(--rash-text-muted);
+}
+
+.status-dot.status-starting {
+  background: var(--rash-warning);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status-dot.status-running {
+  background: var(--rash-success, #4ade80);
+}
+
+.status-dot.status-stopping {
+  background: var(--rash-warning);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status-dot.status-errored {
+  background: var(--rash-error);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* --- Danger button ---------------------------------------- */
+
+.btn-danger {
+  background: var(--rash-error);
+  color: #fff;
+  border: none;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.1);
+}
+
+/* --- Bottom Panel Tabs ------------------------------------ */
+
+.bottom-panel-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.bottom-panel-tab {
+  padding: 0 12px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rash-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.bottom-panel-tab:hover {
+  color: var(--rash-text-secondary);
+}
+
+.bottom-panel-tab.active {
+  color: var(--rash-text);
+  border-bottom-color: var(--rash-accent);
+}
+
+/* --- Log entries ------------------------------------------ */
+
+.log-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 12px;
+  font-family: var(--rash-font);
+}
+
+.log-time {
+  color: var(--rash-text-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 72px;
+}
+
+.log-level {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: var(--rash-radius-sm);
+  flex-shrink: 0;
+  min-width: 36px;
+  text-align: center;
+}
+
+.log-level-info {
+  color: var(--rash-info, #60a5fa);
+  background: color-mix(in srgb, var(--rash-info, #60a5fa) 15%, transparent);
+}
+
+.log-level-warn {
+  color: var(--rash-warning);
+  background: color-mix(in srgb, var(--rash-warning) 15%, transparent);
+}
+
+.log-level-error {
+  color: var(--rash-error);
+  background: color-mix(in srgb, var(--rash-error) 15%, transparent);
+}
+
+.log-level-debug {
+  color: var(--rash-text-muted);
+  background: color-mix(in srgb, var(--rash-text-muted) 15%, transparent);
+}
+
+.log-message {
+  color: var(--rash-text);
+  word-break: break-all;
+}

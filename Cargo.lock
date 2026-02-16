@@ -2892,6 +2892,7 @@ version = "0.1.0"
 dependencies = [
  "rash-codegen",
  "rash-ir",
+ "rash-openapi",
  "rash-runtime",
  "rash-spec",
  "rash-valid",
@@ -2952,7 +2953,13 @@ dependencies = [
 name = "rash-openapi"
 version = "0.1.0"
 dependencies = [
+ "indexmap 2.13.0",
+ "pretty_assertions",
  "rash-spec",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
